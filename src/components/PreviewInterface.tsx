@@ -8,6 +8,7 @@ export interface ExamBlock {
   id: string;
   content: string;
   status: 'pending' | 'approved' | 'rejected';
+  level?: string;
 }
 
 export interface TestFormRow {
@@ -157,8 +158,13 @@ export default function PreviewInterface({ blocks, testForm, onApprove, onReject
                   <div className={`px-4 py-3 bg-slate-50 border-t flex items-center justify-between transition-colors ${
                     isApproved ? 'bg-emerald-50/50 border-emerald-100' : 'border-slate-100'
                   }`}>
-                    <div className="text-xs font-medium text-slate-400">
-                      ID Khối: <span className="font-mono">{block.id}</span>
+                    <div className="flex items-center space-x-3 text-xs font-medium text-slate-400">
+                      <span>ID Khối: <span className="font-mono">{block.id}</span></span>
+                      {block.level && block.level.trim() !== '' && (
+                        <span className="px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded text-[10px] uppercase font-bold tracking-wider">
+                          {block.level}
+                        </span>
+                      )}
                     </div>
                     
                     <div className="flex items-center space-x-2">

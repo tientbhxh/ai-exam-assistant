@@ -248,11 +248,13 @@ Hãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc b
       
       messages.forEach(m => {
         if (m.role === 'assistant') {
-          const blockMatches = [...m.content.matchAll(/<BLOCK id="([^"]+)">([\s\S]*?)<\/BLOCK>/g)];
+          // Parse <BLOCK id="..." level="...">...</BLOCK>
+          const blockMatches = [...m.content.matchAll(/<BLOCK id="([^"]+)"(?: level="([^"]+)")?>([\s\S]*?)<\/BLOCK>/g)];
           blockMatches.forEach(match => {
             const id = match[1];
-            const content = match[2].trim();
-            newBlocksMap.set(id, { id, content, status: 'pending' });
+            const level = match[2]; // Có thể undefined
+            const content = match[3].trim();
+            newBlocksMap.set(id, { id, content, status: 'pending', level });
           });
         }
       });
@@ -314,7 +316,7 @@ Hãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc b
   };
 
   const displayMessages = messages.filter(m => !m.content.startsWith('[System:')).map(m => {
-    let content = m.content.replace(/<BLOCK id="[^"]+">[\s\S]*?<\/BLOCK>/g, '\n\n*✅ Khối nội dung đã được kết xuất ở bảng bên phải.*');
+    let content = m.content.replace(/<BLOCK id="[^"]+"(?: level="[^"]+")?>[\s\S]*?<\/BLOCK>/g, '\n\n*✅ Khối nội dung đã được kết xuất ở bảng bên phải.*');
     content = content.replace(/<RULE>([\s\S]*?)<\/RULE>/g, '');
 
     const buttons: string[] = [];
