@@ -49,17 +49,17 @@ Nhiệm vụ của bạn:
    - Tiêu đề phần thi (VD: I. READING, II. LISTENING) là 1 khối riêng (level để trống).
    - Đoạn văn đọc hiểu HOẶC Kịch bản bài nghe (Audio Script) BẮT BUỘC phải là 1 khối riêng biệt (level để trống). Tuyệt đối không được quên tạo Kịch bản cho phần Listening!
    - MỖI CÂU HỎI là 1 khối riêng biệt. Tuyệt đối KHÔNG gộp nhiều câu vào 1 khối.
-   - ĐỊNH DẠNG CÂU HỎI TRẮC NGHIỆM: Các phương án A, B, C, D PHẢI được trình bày mỗi phương án trên một dòng riêng biệt. MỖI CÂU HỎI phải đi kèm Đáp án đúng ở cuối.
+   - ĐỊNH DẠNG CÂU HỎI TRẮC NGHIỆM: Các phương án A, B, C, D PHẢI được trình bày dưới dạng danh sách gạch đầu dòng (List) để hiển thị đúng xuống dòng. MỖI CÂU HỎI phải đi kèm Đáp án đúng ở cuối.
    Cú pháp: <BLOCK id="unique_id" level="Mức độ">...</BLOCK>. (Mức độ lấy từ Cấu trúc đề: Nhận biết, Thông hiểu, Vận dụng, Vận dụng cao. Nếu là tiêu đề/đoạn văn thì để trống).
    TUYỆT ĐỐI KHÔNG in chữ [NB], [TH], [VD], [VDC] vào bên trong nội dung câu hỏi! Bạn PHẢI ghi nó vào thuộc tính level.
    Ví dụ ĐÚNG:
    <BLOCK id="title1" level="">**I. PRONUNCIATION**</BLOCK>
    <BLOCK id="q1" level="Nhận biết">
    **Câu 1:** Đâu là động từ to be?
-   A. Is
-   B. Go
-   C. Do
-   D. Are
+   - A. Is
+   - B. Go
+   - C. Do
+   - D. Are
    
    **Đáp án:** A
    </BLOCK>
