@@ -188,7 +188,7 @@ export default function Home() {
     content = content.replace(/<RULE>([\s\S]*?)<\/RULE>/g, '');
 
     const buttons: string[] = [];
-    content = content.replace(/<BUTTON>([\s\S]*?)<\/BUTTON>/g, (match, p1) => {
+    content = content.replace(/<BUTTON>([\s\S]*?)<\/BUTTON>/g, (match: string, p1: string) => {
       buttons.push(p1.trim());
       return '';
     });
