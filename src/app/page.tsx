@@ -248,12 +248,27 @@ Hãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc b
       
       messages.forEach(m => {
         if (m.role === 'assistant') {
-          // Parse <BLOCK id="..." level="...">...</BLOCK>
-          const blockMatches = [...m.content.matchAll(/<BLOCK id="([^"]+)"(?: level="([^"]+)")?>([\s\S]*?)<\/BLOCK>/g)];
+          // Parse <BLOCK id="..." level="...">...</BLOCK> with robust attribute parsing
+          const blockMatches = [...m.content.matchAll(/<BLOCK\s+([^>]+)>([\s\S]*?)<\/BLOCK>/g)];
           blockMatches.forEach(match => {
-            const id = match[1];
-            const level = match[2]; // Có thể undefined
-            const content = match[3].trim();
+            const attrs = match[1];
+            let content = match[2].trim();
+            
+            const idMatch = attrs.match(/id="([^"]+)"/);
+            const levelMatch = attrs.match(/level="([^"]+)"/);
+            
+            const id = idMatch ? idMatch[1] : `block-${Date.now()}`;
+            let level = levelMatch ? levelMatch[1] : undefined;
+            
+            // Fallback: Nếu AI quên thuộc tính level nhưng lại chèn [NB], [TH] vào cuối nội dung
+            if (!level) {
+              const levelTagMatch = content.match(/\[(NB|TH|VD|VDC|Nhận biết|Thông hiểu|Vận dụng)\]\s*$/i);
+              if (levelTagMatch) {
+                level = levelTagMatch[1];
+                content = content.replace(/\[(NB|TH|VD|VDC|Nhận biết|Thông hiểu|Vận dụng)\]\s*$/i, '').trim();
+              }
+            }
+
             newBlocksMap.set(id, { id, content, status: 'pending', level });
           });
         }
@@ -316,7 +331,7 @@ Hãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc b
   };
 
   const displayMessages = messages.filter(m => !m.content.startsWith('[System:')).map(m => {
-    let content = m.content.replace(/<BLOCK id="[^"]+"(?: level="[^"]+")?>[\s\S]*?<\/BLOCK>/g, '\n\n*✅ Khối nội dung đã được kết xuất ở bảng bên phải.*');
+    let content = m.content.replace(/<BLOCK\s+([^>]+)>[\s\S]*?<\/BLOCK>/g, '\n\n*✅ Khối nội dung đã được kết xuất ở bảng bên phải.*');
     content = content.replace(/<RULE>([\s\S]*?)<\/RULE>/g, '');
 
     const buttons: string[] = [];

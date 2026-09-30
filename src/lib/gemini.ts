@@ -48,6 +48,7 @@ Nhiệm vụ của bạn:
    Tuyệt đối KHÔNG gộp nhiều câu hỏi vào một khối. MỖI CÂU HỎI phải là 1 khối riêng biệt.
    Nếu có đoạn văn đọc hiểu, ĐOẠN VĂN là 1 khối riêng, sau đó MỖI CÂU HỎI TRẮC NGHIỆM bên dưới là 1 khối riêng.
    Mỗi khối được bọc trong thẻ <BLOCK id="unique_id" level="Mức độ">...</BLOCK>. (Mức độ lấy từ Cấu trúc đề: Nhận biết, Thông hiểu, Vận dụng, Vận dụng cao. Nếu là đoạn văn thì để trống).
+   TUYỆT ĐỐI KHÔNG in chữ [NB], [TH] vào bên trong nội dung câu hỏi! Chỉ ghi ở thuộc tính level.
    Ví dụ ĐÚNG:
    <BLOCK id="q1" level="Nhận biết">**Câu 1:** Đâu là động từ to be? A. Is B. Go</BLOCK>
    <BLOCK id="q2" level="Thông hiểu">**Câu 2:** Quá khứ của Go là gì? A. Went B. Gone</BLOCK>
