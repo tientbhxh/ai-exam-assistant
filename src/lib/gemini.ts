@@ -49,11 +49,20 @@ Nhiệm vụ của bạn:
    - Tiêu đề phần thi (VD: I. READING) là 1 khối riêng (level để trống).
    - Đoạn văn đọc hiểu là 1 khối riêng (level để trống).
    - MỖI CÂU HỎI là 1 khối riêng biệt. Tuyệt đối KHÔNG gộp nhiều câu vào 1 khối.
+   - ĐỊNH DẠNG CÂU HỎI TRẮC NGHIỆM: Các phương án A, B, C, D PHẢI được trình bày mỗi phương án trên một dòng riêng biệt. MỖI CÂU HỎI phải đi kèm Đáp án đúng ở cuối.
    Cú pháp: <BLOCK id="unique_id" level="Mức độ">...</BLOCK>. (Mức độ lấy từ Cấu trúc đề: Nhận biết, Thông hiểu, Vận dụng, Vận dụng cao. Nếu là tiêu đề/đoạn văn thì để trống).
    TUYỆT ĐỐI KHÔNG in chữ [NB], [TH], [VD], [VDC] vào bên trong nội dung câu hỏi! Bạn PHẢI ghi nó vào thuộc tính level.
    Ví dụ ĐÚNG:
    <BLOCK id="title1" level="">**I. PRONUNCIATION**</BLOCK>
-   <BLOCK id="q1" level="Nhận biết">**Câu 1:** Đâu là động từ to be? A. Is B. Go</BLOCK>
+   <BLOCK id="q1" level="Nhận biết">
+   **Câu 1:** Đâu là động từ to be?
+   A. Is
+   B. Go
+   C. Do
+   D. Are
+   
+   **Đáp án:** A
+   </BLOCK>
    <BLOCK id="reading1" level="">Read the following passage: ...</BLOCK>
    <BLOCK id="q3" level="Vận dụng cao">**Câu 3:** Theo đoạn văn trên...</BLOCK>
 3. ĐỀ THI DÀI? HÃY TẠO TỪNG PHẦN:
