@@ -21,6 +21,12 @@ export default function Home() {
   const [apiKeys, setApiKeys] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('gemini-3.5-flash');
   const [showSettings, setShowSettings] = useState(false);
+  const [toast, setToast] = useState<{message: string, type: 'success'|'error'|'info'} | null>(null);
+  
+  const showToast = (message: string, type: 'success'|'error'|'info' = 'info') => {
+    setToast({message, type});
+    setTimeout(() => setToast(null), 3500);
+  };
   
   const [learnedRules, setLearnedRules] = useState<Rule[]>([]);
   const [showMemory, setShowMemory] = useState(false);
@@ -81,7 +87,7 @@ export default function Home() {
 
   const triggerAI = async (inputText: string, forcedState?: SessionState) => {
     if (!apiKeys || apiKeys.length === 0) {
-      alert("Vui lòng nhập ít nhất 1 API Key trước khi gửi!");
+      showToast("Vui lòng nhập ít nhất 1 API Key trước khi gửi!", "error");
       setShowSettings(true);
       return;
     }
@@ -114,7 +120,7 @@ export default function Home() {
         }
       );
     } catch (err: any) {
-      alert("Lỗi từ Google Gemini: " + err.message);
+      showToast("Lỗi từ Google Gemini: " + err.message, "error");
     } finally {
       setIsLoading(false);
     }
@@ -163,7 +169,7 @@ export default function Home() {
         
         const section = row[0] !== undefined && row[0] !== null ? String(row[0]).trim() : currentSection;
         const qNumRaw = row[1];
-        if (qNumRaw === undefined || qNumRaw === null || isNaN(Number(qNumRaw))) continue; 
+        if (qNumRaw === undefined || qNumRaw === null || String(qNumRaw).trim() === '' || isNaN(Number(qNumRaw))) continue; 
         const qNum = Number(qNumRaw);
 
         const knowledge = row[2] !== undefined && row[2] !== null ? String(row[2]).trim() : currentKnowledge;
@@ -185,7 +191,7 @@ export default function Home() {
       }
       
       setTestForm(parsedForm);
-      alert(`Đã tải lên Cấu trúc đề thi gồm ${parsedForm.length} câu hỏi!`);
+      showToast(`Đã tải lên Cấu trúc đề thi gồm ${parsedForm.length} câu hỏi!`, "success");
     };
     reader.readAsBinaryString(file);
     e.target.value = ''; // Reset input
@@ -193,7 +199,7 @@ export default function Home() {
 
   const handleStartSession = () => {
     if (!testForm) {
-      alert("Vui lòng tải lên file Excel Cấu trúc Đề thi (biểu tượng Upload góc trái) trước khi bắt đầu!");
+      showToast("Vui lòng tải lên file Excel Cấu trúc Đề thi trước khi bắt đầu!", "error");
       return;
     }
 
@@ -296,7 +302,7 @@ Hãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc b
     setSessionState('idle');
     setMessages([]);
     setBlocks([]);
-    alert("Đã kết thúc phiên và lưu các quy tắc thành công!");
+    showToast("Đã kết thúc phiên và lưu các quy tắc thành công!", "success");
   };
 
   const skipReview = () => {
@@ -328,7 +334,17 @@ Hãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc b
   }
 
   return (
-    <main className="flex h-screen w-full bg-slate-50 overflow-hidden">
+    <main className="flex h-screen w-full bg-slate-50 overflow-hidden relative">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[100] px-4 py-2.5 rounded-lg shadow-lg text-sm font-medium animate-fade-in flex items-center transition-all ${
+          toast.type === 'success' ? 'bg-emerald-600 text-white' : 
+          toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-slate-800 text-white'
+        }`}>
+          {toast.message}
+        </div>
+      )}
+
       <SettingsModal 
         isOpen={showSettings} 
         onClose={() => setShowSettings(false)} 
