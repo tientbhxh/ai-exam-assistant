@@ -34,7 +34,7 @@ export async function generateChatResponse(
       finalSystemInstruction += `\nHIỆN TẠI ĐANG LÀ TRẠNG THÁI: CHỜ BẮT ĐẦU (IDLE).
 Nhiệm vụ của bạn:
 1. Chào mừng cô giáo Sunnie.
-2. Tóm tắt nhanh các Quy tắc cốt lõi (Base Rules) và Quy tắc bổ sung (Learned Rules) mà bạn đang áp dụng.
+2. BẮT BUỘC liệt kê rõ ràng 2 nhóm: "Các quy tắc cốt lõi (Base Rules)" và "Các thói quen tôi đã học được từ cô (Learned Rules)" dựa trên DANH SÁCH QUY TẮC được cung cấp bên dưới. Đừng tóm tắt quá ngắn gọn khiến các Learned Rules bị bỏ sót.
 3. Hỏi cô giáo đã sẵn sàng bắt đầu phiên làm việc tạo đề thi chưa, kèm theo 2 nút bấm: <BUTTON>Bắt đầu tạo đề thi</BUTTON> <BUTTON>Tôi muốn xem lại quy tắc</BUTTON>.`;
     } 
     else if (sessionState === 'active') {
