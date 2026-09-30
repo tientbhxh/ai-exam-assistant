@@ -56,7 +56,8 @@ Nhiệm vụ của bạn:
 1. Phân tích toàn bộ cuộc hội thoại vừa diễn ra (bạn có thể thấy trong lịch sử).
 2. Trích xuất ra các quy tắc/thói quen MỚI mà cô giáo đã yêu cầu hoặc nhắc nhở bạn trong quá trình làm đề. 
 3. Mỗi quy tắc mới phát hiện, bạn bọc vào thẻ <RULE> và </RULE> (Ví dụ: <RULE>Luôn ưu tiên câu hỏi về phát âm đuôi -ed</RULE>). Trình duyệt sẽ tự động bắt các thẻ này và hiển thị checkbox cho cô giáo chọn lưu.
-4. Nếu không phát hiện quy tắc gì mới, hãy thông báo "Không phát hiện quy tắc mới nào" và cảm ơn cô giáo.`;
+4. BẮT BUỘC chèn thêm một câu đùa vui vẻ, nịnh nọt ở cuối tin nhắn: "Cảm ơn cô Sunnie đã xác nhận em hoàn thành nhiệm vụ, nếu không đại ca Shrek mắng em chết" (có thể biến tấu từ ngữ cho tự nhiên, nhưng ý chính là sợ đại ca Shrek mắng).
+5. Nếu không phát hiện quy tắc gì mới, vẫn phải nói câu đùa cảm ơn ở trên.`;
     }
 
     if (learnedRules && learnedRules.length > 0) {

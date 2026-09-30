@@ -81,9 +81,17 @@ export default function ChatInterface({
                   m.role === 'user' ? 'rounded-tr-sm self-end' : 'rounded-tl-sm self-start'
                 }`}
               >
-                <div className="prose prose-sm max-w-none prose-p:leading-relaxed">
-                  <ReactMarkdown>{m.content}</ReactMarkdown>
-                </div>
+                {m.content === '' && isLoading ? (
+                  <div className="flex items-center space-x-1.5 px-1 py-1 h-5">
+                    <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                ) : (
+                  <div className="prose prose-sm max-w-none prose-p:leading-relaxed">
+                    <ReactMarkdown>{m.content}</ReactMarkdown>
+                  </div>
+                )}
               </div>
               
               {/* Interactive Buttons from AI */}
@@ -105,13 +113,7 @@ export default function ChatInterface({
           </div>
         ))}
 
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-white rounded-2xl rounded-tl-sm p-3 shadow-sm border border-slate-200 text-slate-500">
-              <Loader2 size={16} className="animate-spin" />
-            </div>
-          </div>
-        )}
+
         <div ref={messagesEndRef} />
       </div>
       
