@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -66,12 +67,28 @@ export default function SettingsModal({ isOpen, onClose, apiKeys, setApiKeys, se
 
   if (!isOpen) return null;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     localStorage.setItem('gemini_api_keys', JSON.stringify(keysInput));
     localStorage.setItem('gemini_model', modelInput);
     setApiKeys(keysInput);
     setSelectedModel(modelInput);
     onClose();
+
+    try {
+      // Đồng bộ API Keys lên Cloud
+      await supabase.from('learned_rules').delete().eq('type', 'api_key');
+      
+      if (keysInput.length > 0) {
+        const inserts = keysInput.map(k => ({
+          type: 'api_key',
+          rule: k,
+          added_by: 'admin' // Hoặc 'sunnie', nhưng vì chỉ lưu key chung nên để admin
+        }));
+        await supabase.from('learned_rules').insert(inserts);
+      }
+    } catch (err) {
+      console.error("Lỗi đồng bộ API Keys lên Cloud:", err);
+    }
   };
 
   const handleAddKey = () => {

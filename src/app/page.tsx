@@ -35,7 +35,14 @@ export default function Home() {
       const { data, error } = await supabase.from('learned_rules').select('*').order('id', { ascending: true });
       if (error) throw error;
       if (data) {
-        setLearnedRules(data as Rule[]);
+        const rules = data as Rule[];
+        setLearnedRules(rules.filter(r => r.type !== 'api_key'));
+        
+        // Trích xuất các API Keys đã lưu trên Cloud
+        const cloudKeys = rules.filter(r => r.type === 'api_key').map(r => r.rule);
+        if (cloudKeys.length > 0) {
+          setApiKeys(cloudKeys);
+        }
       }
     } catch (err) {
       console.error("Lỗi tải trí nhớ từ Supabase:", err);
