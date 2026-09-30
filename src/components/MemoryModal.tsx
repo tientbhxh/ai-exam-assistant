@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrainCircuit, Trash2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface MemoryModalProps {
   isOpen: boolean;
@@ -11,17 +12,30 @@ interface MemoryModalProps {
 export default function MemoryModal({ isOpen, onClose, learnedRules, setLearnedRules }: MemoryModalProps) {
   if (!isOpen) return null;
 
-  const handleDelete = (index: number) => {
+  const handleDelete = async (index: number) => {
+    const ruleToDelete = learnedRules[index];
     const newRules = [...learnedRules];
     newRules.splice(index, 1);
     setLearnedRules(newRules);
-    localStorage.setItem('gemini_learned_rules', JSON.stringify(newRules));
+    
+    // Delete from Supabase
+    try {
+      await supabase.from('learned_rules').delete().eq('rule', ruleToDelete);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
-  const handleClearAll = () => {
+  const handleClearAll = async () => {
     if (confirm("Bạn có chắc chắn muốn xóa toàn bộ bộ nhớ của Trợ lý?")) {
       setLearnedRules([]);
-      localStorage.setItem('gemini_learned_rules', JSON.stringify([]));
+      
+      // Delete all from Supabase
+      try {
+        await supabase.from('learned_rules').delete().neq('rule', 'dummy');
+      } catch (e) {
+        console.error(e);
+      }
     }
   };
 

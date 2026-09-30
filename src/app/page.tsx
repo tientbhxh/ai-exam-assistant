@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import SettingsModal from '@/components/SettingsModal';
 import MemoryModal from '@/components/MemoryModal';
+import Login from '@/components/Login';
+import { supabase } from '@/lib/supabase';
 
 const ChatInterface = dynamic(() => import('@/components/ChatInterface'), { ssr: false });
 const PreviewInterface = dynamic(() => import('@/components/PreviewInterface'), { ssr: false });
@@ -17,26 +19,39 @@ export default function Home() {
   
   const [learnedRules, setLearnedRules] = useState<string[]>([]);
   const [showMemory, setShowMemory] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  // Fetch rules from Supabase
+  const fetchRules = async () => {
+    try {
+      const { data, error } = await supabase.from('learned_rules').select('rule');
+      if (error) throw error;
+      if (data) {
+        setLearnedRules(data.map(item => item.rule));
+      }
+    } catch (err) {
+      console.error("Lỗi tải trí nhớ từ Supabase:", err);
+    }
+  };
 
   useEffect(() => {
     const savedKey = localStorage.getItem('gemini_api_key');
     const savedModel = localStorage.getItem('gemini_model');
-    const savedRules = localStorage.getItem('gemini_learned_rules');
+    const role = localStorage.getItem('auth_role');
     
+    if (role) {
+      setUserRole(role);
+      fetchRules(); // Load rules if logged in
+    }
+
     if (savedKey) {
       setApiKey(savedKey);
-    } else {
+    } else if (role === 'admin') {
       setShowSettings(true);
     }
+    
     if (savedModel) {
       setSelectedModel(savedModel);
-    }
-    if (savedRules) {
-      try {
-        setLearnedRules(JSON.parse(savedRules));
-      } catch (e) {
-        console.error(e);
-      }
     }
   }, []);
 
@@ -112,22 +127,31 @@ export default function Home() {
       if (ruleMatches.length > 0) {
         let newRulesAdded = false;
         const currentRules = [...learnedRules];
+        const newRulesToInsert: string[] = [];
         
         ruleMatches.forEach(match => {
           const rule = match[1].trim();
           if (rule && !currentRules.includes(rule)) {
             currentRules.push(rule);
+            newRulesToInsert.push(rule);
             newRulesAdded = true;
           }
         });
         
         if (newRulesAdded) {
           setLearnedRules(currentRules);
-          localStorage.setItem('gemini_learned_rules', JSON.stringify(currentRules));
+          
+          // Save to Supabase instead of localStorage
+          const saveToSupabase = async () => {
+            const records = newRulesToInsert.map(rule => ({ rule }));
+            const { error } = await supabase.from('learned_rules').insert(records);
+            if (error) console.error("Lỗi lưu rule lên Supabase:", error);
+          };
+          saveToSupabase();
         }
       }
     }
-  }, [messages]);
+  }, [messages, learnedRules]);
 
   // Strip <EXAM_CONTENT> and <RULE> tags from chat display
   const displayMessages = messages.map(m => {
@@ -135,6 +159,14 @@ export default function Home() {
     strippedContent = strippedContent.replace(/<RULE>([\s\S]*?)<\/RULE>/g, '\n\n*🧠 Đã ghi nhớ quy tắc: "$1"*');
     return { ...m, content: strippedContent };
   });
+
+  if (!userRole) {
+    return <Login onLoginSuccess={(role) => {
+      setUserRole(role);
+      fetchRules();
+      if (role === 'admin' && !apiKey) setShowSettings(true);
+    }} />;
+  }
 
   return (
     <main className="flex h-screen w-full bg-slate-50 overflow-hidden">
@@ -159,27 +191,46 @@ export default function Home() {
         <div className="p-4 border-b border-slate-100 bg-white flex items-center justify-between">
           <div>
             <h1 className="font-bold text-lg text-slate-800">Trợ lý Khảo thí AI</h1>
-            <p className="text-xs text-slate-500">Được cung cấp bởi Google Gemini</p>
+            <p className="text-xs text-slate-500">
+              Được cung cấp bởi Google Gemini
+              <span className="ml-2 px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium">
+                {userRole === 'admin' ? 'Thầy (Admin)' : 'Cô Giáo'}
+              </span>
+            </p>
           </div>
-          <div className="flex space-x-1">
-            <button 
-              onClick={() => setShowMemory(true)}
-              className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors relative"
-              title="Trí nhớ AI"
-            >
-              <BrainCircuit size={16} />
-              {learnedRules.length > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-purple-500 rounded-full"></span>
-              )}
-            </button>
-            <button 
-              onClick={() => setShowSettings(true)}
-              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-colors"
-              title="Cài đặt API Key"
-            >
-              <Key size={16} />
-            </button>
-          </div>
+          
+          {userRole === 'admin' && (
+            <div className="flex space-x-1">
+              <button 
+                onClick={() => setShowMemory(true)}
+                className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors relative"
+                title="Trí nhớ AI"
+              >
+                <BrainCircuit size={16} />
+                {learnedRules.length > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-purple-500 rounded-full"></span>
+                )}
+              </button>
+              <button 
+                onClick={() => setShowSettings(true)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-colors"
+                title="Cài đặt API Key"
+              >
+                <Key size={16} />
+              </button>
+            </div>
+          )}
+          
+          <button 
+            onClick={() => {
+              localStorage.removeItem('auth_role');
+              setUserRole(null);
+            }}
+            className="p-2 ml-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors text-xs"
+            title="Đăng xuất"
+          >
+            Thoát
+          </button>
         </div>
         <div className="flex-1 overflow-hidden">
           <ChatInterface 
