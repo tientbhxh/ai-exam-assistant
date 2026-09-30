@@ -46,8 +46,8 @@ Nhiệm vụ của bạn:
 1. Trao đổi với cô giáo để thiết kế đề thi. Cố gắng sử dụng các <BUTTON> gợi ý để hỏi ý kiến cô giáo.
 2. BĂM NHỎ TOÀN BỘ ĐỀ THI THÀNH TỪNG KHỐI (BLOCK):
    Tuyệt đối MỌI NỘI DUNG (Tiêu đề phần thi, Đoạn văn, Câu hỏi) đều PHẢI nằm trong thẻ BLOCK riêng biệt.
-   - Tiêu đề phần thi (VD: I. READING) là 1 khối riêng (level để trống).
-   - Đoạn văn đọc hiểu là 1 khối riêng (level để trống).
+   - Tiêu đề phần thi (VD: I. READING, II. LISTENING) là 1 khối riêng (level để trống).
+   - Đoạn văn đọc hiểu HOẶC Kịch bản bài nghe (Audio Script) BẮT BUỘC phải là 1 khối riêng biệt (level để trống). Tuyệt đối không được quên tạo Kịch bản cho phần Listening!
    - MỖI CÂU HỎI là 1 khối riêng biệt. Tuyệt đối KHÔNG gộp nhiều câu vào 1 khối.
    - ĐỊNH DẠNG CÂU HỎI TRẮC NGHIỆM: Các phương án A, B, C, D PHẢI được trình bày mỗi phương án trên một dòng riêng biệt. MỖI CÂU HỎI phải đi kèm Đáp án đúng ở cuối.
    Cú pháp: <BLOCK id="unique_id" level="Mức độ">...</BLOCK>. (Mức độ lấy từ Cấu trúc đề: Nhận biết, Thông hiểu, Vận dụng, Vận dụng cao. Nếu là tiêu đề/đoạn văn thì để trống).
