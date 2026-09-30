@@ -129,10 +129,12 @@ export default function Home() {
   };
 
   const onButtonClick = async (text: string) => {
+    let nextState = sessionState;
     if (text === 'Bắt đầu tạo đề thi' && sessionState === 'idle') {
       setSessionState('active');
+      nextState = 'active';
     }
-    await triggerAI(text);
+    await triggerAI(text, nextState);
   };
 
   const [testForm, setTestForm] = useState<TestFormRow[] | null>(null);
