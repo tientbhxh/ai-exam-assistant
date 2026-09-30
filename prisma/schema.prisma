@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model ChatSession {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  title     String?
+  messages  Message[]
+  exam      Exam?
+}
+
+model Message {
+  id            String      @id @default(uuid())
+  createdAt     DateTime    @default(now())
+  role          String      // "user", "assistant", or "system"
+  content       String
+  chatSessionId String
+  chatSession   ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+}
+
+model Exam {
+  id            String      @id @default(uuid())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  content       String      // Markdown format of the generated exam
+  chatSessionId String      @unique
+  chatSession   ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+}
+
+model MemoryRule {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  rule      String   // Kinh nghiệm/Quy tắc cần thêm vào System Prompt
+  isActive  Boolean  @default(true)
+}
