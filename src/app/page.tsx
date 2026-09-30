@@ -190,36 +190,34 @@ export default function Home() {
       <section className="w-1/3 min-w-[380px] max-w-[500px] border-r border-slate-200 bg-white flex flex-col shadow-sm z-10 print:hidden">
         <div className="p-4 border-b border-slate-100 bg-white flex items-center justify-between">
           <div>
-            <h1 className="font-bold text-lg text-slate-800">Trợ lý Khảo thí AI</h1>
+            <h1 className="font-bold text-lg text-slate-800">Trợ lý tạo đề thi</h1>
             <p className="text-xs text-slate-500">
-              Được cung cấp bởi Google Gemini
+              Dành riêng cho cô giáo Sunnie
               <span className="ml-2 px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium">
-                {userRole === 'admin' ? 'Thầy (Admin)' : 'Cô Giáo'}
+                {userRole === 'admin' ? 'Admin' : 'Giáo viên'}
               </span>
             </p>
           </div>
           
-          {userRole === 'admin' && (
-            <div className="flex space-x-1">
-              <button 
-                onClick={() => setShowMemory(true)}
-                className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors relative"
-                title="Trí nhớ AI"
-              >
-                <BrainCircuit size={16} />
-                {learnedRules.length > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-purple-500 rounded-full"></span>
-                )}
-              </button>
-              <button 
-                onClick={() => setShowSettings(true)}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-colors"
-                title="Cài đặt API Key"
-              >
-                <Key size={16} />
-              </button>
-            </div>
-          )}
+          <div className="flex space-x-1">
+            <button 
+              onClick={() => setShowMemory(true)}
+              className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors relative"
+              title="Trí nhớ AI"
+            >
+              <BrainCircuit size={16} />
+              {learnedRules.length > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-purple-500 rounded-full"></span>
+              )}
+            </button>
+            <button 
+              onClick={() => setShowSettings(true)}
+              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-colors"
+              title="Cài đặt API Key"
+            >
+              <Key size={16} />
+            </button>
+          </div>
           
           <button 
             onClick={() => {
@@ -240,6 +238,9 @@ export default function Home() {
             handleSubmit={onSubmit}
             isLoading={isLoading}
           />
+          <div className="text-center py-2 text-xs text-slate-400 border-t border-slate-100 bg-white">
+            This App for Sunnie
+          </div>
         </div>
       </section>
 

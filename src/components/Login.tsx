@@ -45,8 +45,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     <div className="flex items-center justify-center min-h-screen w-full bg-slate-100">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-slate-800">Trợ lý Khảo thí AI</h1>
-          <p className="text-sm text-slate-500 mt-2">Đăng nhập để sử dụng hệ thống</p>
+          <h1 className="text-2xl font-bold text-slate-800">Trợ lý tạo đề thi</h1>
+          <p className="text-sm text-slate-500 mt-2">Dành riêng cho cô giáo Sunnie</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">

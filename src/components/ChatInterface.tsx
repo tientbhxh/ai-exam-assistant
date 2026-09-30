@@ -46,10 +46,8 @@ export default function ChatInterface({ messages, input, handleInputChange, hand
         {messages.map((m) => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
             <div 
-              className={`rounded-2xl p-3 max-w-[90%] text-sm shadow-sm border ${
-                m.role === 'user' 
-                  ? 'bg-blue-600 text-white rounded-tr-sm border-blue-700' 
-                  : 'bg-white text-slate-800 rounded-tl-sm border-slate-200'
+              className={`rounded-2xl p-3 max-w-[90%] text-sm shadow-sm border bg-white text-slate-800 border-slate-200 ${
+                m.role === 'user' ? 'rounded-tr-sm' : 'rounded-tl-sm'
               }`}
             >
               <div className="prose prose-sm max-w-none prose-p:leading-relaxed">
