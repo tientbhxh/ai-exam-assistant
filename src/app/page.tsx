@@ -347,22 +347,34 @@ Hãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc b
       />
 
       <section className="w-1/3 min-w-[380px] max-w-[500px] border-r border-slate-200 bg-white flex flex-col shadow-sm z-10 print:hidden relative">
-        <div className="p-4 border-b border-slate-100 bg-white flex items-center justify-between">
-          <div>
-            <h1 className="font-bold text-lg text-slate-800">Trợ lý tạo đề thi</h1>
-            <p className="text-xs text-slate-500">
-              Dành riêng cho cô giáo Sunnie
-              <span className="ml-2 px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium">
-                {userRole === 'admin' ? 'Admin' : 'Giáo viên'}
-              </span>
-            </p>
+        <div className="p-4 border-b border-slate-100 bg-white flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="font-bold text-lg text-slate-800">Trợ lý tạo đề thi</h1>
+              <p className="text-xs text-slate-500 flex items-center mt-1">
+                Dành riêng cho cô giáo Sunnie
+                <span className="ml-2 px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium whitespace-nowrap">
+                  {userRole === 'admin' ? 'Admin' : 'Giáo viên'}
+                </span>
+              </p>
+            </div>
+            <button 
+              onClick={() => {
+                localStorage.removeItem('auth_role');
+                setUserRole(null);
+              }}
+              className="px-2 py-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors text-xs font-medium"
+              title="Đăng xuất"
+            >
+              Thoát
+            </button>
           </div>
           
-          <div className="flex space-x-1 items-center">
+          <div className="flex items-center justify-between bg-slate-50 p-1.5 rounded-lg border border-slate-100">
             <select 
               value={grade}
               onChange={(e) => setGrade(e.target.value)}
-              className="text-xs font-medium border border-slate-200 rounded px-2 py-1.5 mr-1 text-slate-600 focus:outline-none focus:border-purple-400 bg-slate-50 cursor-pointer hover:bg-slate-100"
+              className="text-xs font-medium border-none bg-transparent px-2 py-1 text-slate-700 focus:outline-none cursor-pointer hover:bg-slate-200 rounded transition-colors"
             >
               <option value="Lớp 6">Lớp 6</option>
               <option value="Lớp 7">Lớp 7</option>
@@ -373,45 +385,36 @@ Hãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc b
               <option value="Lớp 12">Lớp 12</option>
             </select>
             
-            <label 
-              className="p-2 cursor-pointer text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-full transition-colors relative"
-              title="Tải lên Cấu trúc đề (Excel)"
-            >
-              <Upload size={16} />
-              <input type="file" accept=".xlsx, .xls" className="hidden" onChange={handleFileUpload} />
-              {testForm && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full"></span>
-              )}
-            </label>
-            <button 
-              onClick={() => setShowMemory(true)}
-              className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors relative"
-              title="Trí nhớ AI"
-            >
-              <BrainCircuit size={16} />
-              {learnedRules.length > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-purple-500 rounded-full"></span>
-              )}
-            </button>
-            <button 
-              onClick={() => setShowSettings(true)}
-              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-colors"
-              title="Cài đặt API Key"
-            >
-              <Key size={16} />
-            </button>
+            <div className="flex space-x-1 items-center">
+              <label 
+                className="p-1.5 cursor-pointer text-slate-400 hover:text-emerald-600 hover:bg-white rounded-md transition-colors relative shadow-sm"
+                title="Tải lên Cấu trúc đề (Excel)"
+              >
+                <Upload size={16} />
+                <input type="file" accept=".xlsx, .xls" className="hidden" onChange={handleFileUpload} />
+                {testForm && (
+                  <span className="absolute top-0 right-0 w-2 h-2 bg-emerald-500 rounded-full border border-white"></span>
+                )}
+              </label>
+              <button 
+                onClick={() => setShowMemory(true)}
+                className="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-white rounded-md transition-colors relative shadow-sm"
+                title="Trí nhớ AI"
+              >
+                <BrainCircuit size={16} />
+                {learnedRules.length > 0 && (
+                  <span className="absolute top-0 right-0 w-2 h-2 bg-purple-500 rounded-full border border-white"></span>
+                )}
+              </button>
+              <button 
+                onClick={() => setShowSettings(true)}
+                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-white rounded-md transition-colors shadow-sm"
+                title="Cài đặt API Key"
+              >
+                <Key size={16} />
+              </button>
+            </div>
           </div>
-          
-          <button 
-            onClick={() => {
-              localStorage.removeItem('auth_role');
-              setUserRole(null);
-            }}
-            className="p-2 ml-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors text-xs"
-            title="Đăng xuất"
-          >
-            Thoát
-          </button>
         </div>
         
         <div className="flex-1 overflow-hidden relative flex flex-col">
