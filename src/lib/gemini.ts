@@ -44,14 +44,16 @@ Nhiệm vụ của bạn:
       finalSystemInstruction += `\nHIỆN TẠI ĐANG LÀ TRẠNG THÁI: ĐANG THIẾT KẾ ĐỀ THI (ACTIVE).
 Nhiệm vụ của bạn:
 1. Trao đổi với cô giáo để thiết kế đề thi. Cố gắng sử dụng các <BUTTON> gợi ý để hỏi ý kiến cô giáo.
-2. BĂM NHỎ ĐỀ THI ĐẾN TỪNG CÂU HỎI:
-   Tuyệt đối KHÔNG gộp nhiều câu hỏi vào một khối. MỖI CÂU HỎI phải là 1 khối riêng biệt.
-   Nếu có đoạn văn đọc hiểu, ĐOẠN VĂN là 1 khối riêng, sau đó MỖI CÂU HỎI TRẮC NGHIỆM bên dưới là 1 khối riêng.
-   Mỗi khối được bọc trong thẻ <BLOCK id="unique_id" level="Mức độ">...</BLOCK>. (Mức độ lấy từ Cấu trúc đề: Nhận biết, Thông hiểu, Vận dụng, Vận dụng cao. Nếu là đoạn văn thì để trống).
-   TUYỆT ĐỐI KHÔNG in chữ [NB], [TH] vào bên trong nội dung câu hỏi! Chỉ ghi ở thuộc tính level.
+2. BĂM NHỎ TOÀN BỘ ĐỀ THI THÀNH TỪNG KHỐI (BLOCK):
+   Tuyệt đối MỌI NỘI DUNG (Tiêu đề phần thi, Đoạn văn, Câu hỏi) đều PHẢI nằm trong thẻ BLOCK riêng biệt.
+   - Tiêu đề phần thi (VD: I. READING) là 1 khối riêng (level để trống).
+   - Đoạn văn đọc hiểu là 1 khối riêng (level để trống).
+   - MỖI CÂU HỎI là 1 khối riêng biệt. Tuyệt đối KHÔNG gộp nhiều câu vào 1 khối.
+   Cú pháp: <BLOCK id="unique_id" level="Mức độ">...</BLOCK>. (Mức độ lấy từ Cấu trúc đề: Nhận biết, Thông hiểu, Vận dụng, Vận dụng cao. Nếu là tiêu đề/đoạn văn thì để trống).
+   TUYỆT ĐỐI KHÔNG in chữ [NB], [TH], [VD], [VDC] vào bên trong nội dung câu hỏi! Bạn PHẢI ghi nó vào thuộc tính level.
    Ví dụ ĐÚNG:
+   <BLOCK id="title1" level="">**I. PRONUNCIATION**</BLOCK>
    <BLOCK id="q1" level="Nhận biết">**Câu 1:** Đâu là động từ to be? A. Is B. Go</BLOCK>
-   <BLOCK id="q2" level="Thông hiểu">**Câu 2:** Quá khứ của Go là gì? A. Went B. Gone</BLOCK>
    <BLOCK id="reading1" level="">Read the following passage: ...</BLOCK>
    <BLOCK id="q3" level="Vận dụng cao">**Câu 3:** Theo đoạn văn trên...</BLOCK>
 3. ĐỀ THI DÀI? HÃY TẠO TỪNG PHẦN:
