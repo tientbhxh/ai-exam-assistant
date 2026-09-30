@@ -23,8 +23,10 @@ export async function generateChatResponse(
   let lastError: any = null;
   
   for (let i = 0; i < apiKeys.length; i++) {
-    try {
-      const genAI = new GoogleGenerativeAI(apiKeys[i]);
+    let retries = 2; // Tự động thử lại 2 lần nếu bị 503 High Demand
+    while (retries >= 0) {
+      try {
+        const genAI = new GoogleGenerativeAI(apiKeys[i]);
     
     let finalModelName = modelName;
     if (finalModelName.startsWith('models/')) {
@@ -126,18 +128,29 @@ Nhiệm vụ của bạn:
       
       return fullText;
     } catch (error: any) {
-      console.error(`Gemini API Error with key index ${i}:`, error);
+      console.error(`Gemini API Error with key index ${i} (Retries left: ${retries}):`, error);
       lastError = error;
       const msg = (error.message || '').toLowerCase();
-      // If error is related to quota/rate limit, and we have more keys to try
+      
+      // Xử lý 503 High Demand: Chờ 3 giây rồi thử lại với chính key hiện tại
+      if (msg.includes('503') || msg.includes('overloaded') || msg.includes('high demand') || msg.includes('fetch failed')) {
+        if (retries > 0) {
+          console.log(`503 High Demand. Đang chờ 3 giây để thử lại...`);
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          retries--;
+          continue; // Chạy lại vòng lặp while
+        }
+      }
+      
+      // Xử lý 429 Quota Exceeded hoặc hết lượt thử lại 503: Chuyển sang Key tiếp theo
       if ((msg.includes('429') || msg.includes('quota') || msg.includes('rate limit') || msg.includes('too many requests')) && i < apiKeys.length - 1) {
         console.log(`Auto-rotating API Key... Switching to key index ${i + 1}`);
-        continue;
       }
-      // If it's a different error or we're out of keys, break loop and throw
-      break;
+      
+      break; // Thoát vòng lặp while để đến với Key tiếp theo trong vòng lặp for (hoặc kết thúc)
     }
   }
+}
 
   // If we exhaust all keys or break early, throw the last error
   throw lastError;
