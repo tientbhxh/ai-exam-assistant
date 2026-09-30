@@ -13,15 +13,18 @@ TRẠNG THÁI PHIÊN LÀM VIỆC:
 `;
 
 export async function generateChatResponse(
-  apiKey: string,
+  apiKeys: string[],
   modelName: string,
   messages: { role: string; content: string }[],
   learnedRules: Rule[],
   sessionState: 'idle' | 'active' | 'review',
   onUpdate: (text: string) => void
 ) {
-  try {
-    const genAI = new GoogleGenerativeAI(apiKey);
+  let lastError: any = null;
+  
+  for (let i = 0; i < apiKeys.length; i++) {
+    try {
+      const genAI = new GoogleGenerativeAI(apiKeys[i]);
     
     let finalModelName = modelName;
     if (finalModelName.startsWith('models/')) {
@@ -79,25 +82,37 @@ Nhiệm vụ của bạn:
 
     const currentInput = history.pop()?.parts[0].text || '';
 
-    const chat = model.startChat({
-      history: history,
-      generationConfig: {
-        temperature: 0.7,
-      }
-    });
+      const chat = model.startChat({
+        history: history,
+        generationConfig: {
+          temperature: 0.7,
+        }
+      });
 
-    const result = await chat.sendMessageStream(currentInput);
-    
-    let fullText = '';
-    for await (const chunk of result.stream) {
-      const chunkText = chunk.text();
-      fullText += chunkText;
-      onUpdate(fullText);
+      const result = await chat.sendMessageStream(currentInput);
+      
+      let fullText = '';
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text();
+        fullText += chunkText;
+        onUpdate(fullText);
+      }
+      
+      return fullText; // Return successfully if no error
+    } catch (error: any) {
+      console.error(`Gemini API Error with key index ${i}:`, error);
+      lastError = error;
+      const msg = (error.message || '').toLowerCase();
+      // If error is related to quota/rate limit, and we have more keys to try
+      if ((msg.includes('429') || msg.includes('quota') || msg.includes('rate limit') || msg.includes('too many requests')) && i < apiKeys.length - 1) {
+        console.log(`Auto-rotating API Key... Switching to key index ${i + 1}`);
+        continue;
+      }
+      // If it's a different error or we're out of keys, break loop and throw
+      break;
     }
-    
-    return fullText;
-  } catch (error) {
-    console.error("Gemini API Error:", error);
-    throw error;
   }
+
+  // If we exhaust all keys or break early, throw the last error
+  throw lastError;
 }

@@ -18,7 +18,7 @@ const PreviewInterface = dynamic(() => import('@/components/PreviewInterface'), 
 type SessionState = 'idle' | 'active' | 'review';
 
 export default function Home() {
-  const [apiKey, setApiKey] = useState<string>('');
+  const [apiKeys, setApiKeys] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('gemini-3.5-flash');
   const [showSettings, setShowSettings] = useState(false);
   
@@ -43,7 +43,8 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const savedKey = localStorage.getItem('gemini_api_key');
+    const savedKeys = localStorage.getItem('gemini_api_keys');
+    const savedOldKey = localStorage.getItem('gemini_api_key');
     const savedModel = localStorage.getItem('gemini_model');
     const role = localStorage.getItem('auth_role');
     
@@ -52,8 +53,15 @@ export default function Home() {
       fetchRules();
     }
 
-    if (savedKey) setApiKey(savedKey);
-    else if (role === 'admin') setShowSettings(true);
+    if (savedKeys) {
+      setApiKeys(JSON.parse(savedKeys));
+    } else if (savedOldKey) {
+      setApiKeys([savedOldKey]);
+      localStorage.setItem('gemini_api_keys', JSON.stringify([savedOldKey]));
+      localStorage.removeItem('gemini_api_key');
+    } else if (role === 'admin') {
+      setShowSettings(true);
+    }
     
     if (savedModel) setSelectedModel(savedModel);
   }, []);
@@ -65,8 +73,8 @@ export default function Home() {
   const handleInputChange = (e: any) => setInput(e.target.value);
 
   const triggerAI = async (inputText: string, forcedState?: SessionState) => {
-    if (!apiKey) {
-      alert("Vui lòng nhập API Key trước khi gửi!");
+    if (!apiKeys || apiKeys.length === 0) {
+      alert("Vui lòng nhập ít nhất 1 API Key trước khi gửi!");
       setShowSettings(true);
       return;
     }
@@ -82,7 +90,7 @@ export default function Home() {
 
     try {
       await generateChatResponse(
-        apiKey,
+        apiKeys,
         selectedModel,
         newMessages,
         learnedRules,
@@ -306,7 +314,7 @@ Hãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc b
     return <Login onLoginSuccess={(role) => {
       setUserRole(role);
       fetchRules();
-      if (role === 'admin' && !apiKey) setShowSettings(true);
+      if (role === 'admin' && apiKeys.length === 0) setShowSettings(true);
     }} />;
   }
 
@@ -315,8 +323,8 @@ Hãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc b
       <SettingsModal 
         isOpen={showSettings} 
         onClose={() => setShowSettings(false)} 
-        apiKey={apiKey} 
-        setApiKey={setApiKey} 
+        apiKeys={apiKeys} 
+        setApiKeys={setApiKeys} 
         selectedModel={selectedModel}
         setSelectedModel={setSelectedModel}
       />
