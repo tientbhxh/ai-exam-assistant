@@ -25,7 +25,8 @@ export default function Home() {
   
   const showToast = (message: string, type: 'success'|'error'|'info' = 'info') => {
     setToast({message, type});
-    setTimeout(() => setToast(null), 3500);
+    const duration = type === 'error' ? 15000 : 4000; // Lỗi hiện 15 giây để kịp chụp ảnh
+    setTimeout(() => setToast(null), duration);
   };
   
   const [learnedRules, setLearnedRules] = useState<Rule[]>([]);
