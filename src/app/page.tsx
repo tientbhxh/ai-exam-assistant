@@ -11,6 +11,10 @@ import { generateChatResponse } from '@/lib/gemini';
 import { Key, BrainCircuit, Save, Upload } from 'lucide-react';
 import * as xlsx from 'xlsx';
 import { ExamBlock, TestFormRow } from '@/components/PreviewInterface';
+import dynamic from 'next/dynamic';
+
+const ChatInterface = dynamic(() => import('@/components/ChatInterface'), { ssr: false });
+const PreviewInterface = dynamic(() => import('@/components/PreviewInterface'), { ssr: false });
 
 type SessionState = 'idle' | 'active' | 'review';
 
