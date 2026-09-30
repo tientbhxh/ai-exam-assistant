@@ -28,6 +28,7 @@ export default function Home() {
   
   const [sessionState, setSessionState] = useState<SessionState>('idle');
   const [suggestedRules, setSuggestedRules] = useState<{rule: string, selected: boolean}[]>([]);
+  const [grade, setGrade] = useState<string>('Lớp 9');
 
   const fetchRules = async () => {
     try {
@@ -174,19 +175,27 @@ export default function Home() {
   };
 
   const handleStartSession = () => {
+    if (!testForm) {
+      alert("Vui lòng tải lên file Excel Cấu trúc Đề thi (biểu tượng Upload góc trái) trước khi bắt đầu!");
+      return;
+    }
+
     setSessionState('idle');
     setMessages([]);
     setBlocks([]);
     
-    let sysPrompt = "[System: Bắt đầu phiên làm việc. Hãy tóm tắt các quy tắc bạn đang có và hỏi tôi đã sẵn sàng chưa bằng nút bấm Bắt đầu tạo đề thi.]";
-    
-    if (testForm) {
-      let formMd = "| Phần | Câu | Kiến thức | Mức độ | Đề bài |\n|---|---|---|---|---|\n";
-      testForm.forEach(r => {
-        formMd += `| ${r.section} | ${r.questionNumber} | ${r.knowledge} | ${r.level} | ${r.prompt} |\n`;
-      });
-      sysPrompt = `[System: Bắt đầu phiên làm việc. Dưới đây là Cấu trúc Đề thi (Test Form) đã được tải lên:\n\n${formMd}\n\nHãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc bạn đang có và hỏi tôi đã sẵn sàng chưa bằng nút bấm <BUTTON>Bắt đầu tạo đề thi</BUTTON>.]`;
-    }
+    let formMd = "| Phần | Câu | Kiến thức | Mức độ | Đề bài |\n|---|---|---|---|---|\n";
+    testForm.forEach(r => {
+      formMd += `| ${r.section} | ${r.questionNumber} | ${r.knowledge} | ${r.level} | ${r.prompt} |\n`;
+    });
+
+    const sysPrompt = `[System: Bắt đầu phiên làm việc.
+Đây là thông tin Đề thi sẽ tạo:
+- Dành cho học sinh: ${grade}
+- Dưới đây là Cấu trúc Đề thi (Test Form) đã được tải lên:
+\n${formMd}\n
+LƯU Ý QUAN TRỌNG: BẠN ĐÃ NẮM RÕ KHỐI LỚP VÀ CẤU TRÚC ĐỀ THI. TUYỆT ĐỐI KHÔNG ĐƯỢC PHÉP hỏi lại cô giáo về khối lớp hay cấu trúc đề thi nữa.
+Hãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc bạn đang có và hỏi tôi đã sẵn sàng chưa bằng nút bấm <BUTTON>Bắt đầu tạo đề thi</BUTTON>.]`;
 
     triggerAI(sysPrompt, 'idle');
   };
@@ -332,7 +341,21 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="flex space-x-1">
+          <div className="flex space-x-1 items-center">
+            <select 
+              value={grade}
+              onChange={(e) => setGrade(e.target.value)}
+              className="text-xs font-medium border border-slate-200 rounded px-2 py-1.5 mr-1 text-slate-600 focus:outline-none focus:border-purple-400 bg-slate-50 cursor-pointer hover:bg-slate-100"
+            >
+              <option value="Lớp 6">Lớp 6</option>
+              <option value="Lớp 7">Lớp 7</option>
+              <option value="Lớp 8">Lớp 8</option>
+              <option value="Lớp 9">Lớp 9</option>
+              <option value="Lớp 10">Lớp 10</option>
+              <option value="Lớp 11">Lớp 11</option>
+              <option value="Lớp 12">Lớp 12</option>
+            </select>
+            
             <label 
               className="p-2 cursor-pointer text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-full transition-colors relative"
               title="Tải lên Cấu trúc đề (Excel)"
