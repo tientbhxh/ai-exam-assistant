@@ -101,13 +101,21 @@ Nhiệm vụ của bạn:
       const result = await chat.sendMessageStream(currentInput);
       
       let fullText = '';
-      for await (const chunk of result.stream) {
-        const chunkText = chunk.text();
-        fullText += chunkText;
-        onUpdate(fullText);
+      try {
+        for await (const chunk of result.stream) {
+          const chunkText = chunk.text();
+          fullText += chunkText;
+          onUpdate(fullText);
+        }
+      } catch (streamErr: any) {
+        console.warn("Stream parse error (returning partial text):", streamErr);
+        if (fullText.trim().length === 0) {
+          throw streamErr;
+        }
+        // Nếu đã có văn bản, cứ trả về để không mất dữ liệu đã tạo
       }
       
-      return fullText; // Return successfully if no error
+      return fullText;
     } catch (error: any) {
       console.error(`Gemini API Error with key index ${i}:`, error);
       lastError = error;
