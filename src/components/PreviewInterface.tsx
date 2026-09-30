@@ -10,13 +10,22 @@ export interface ExamBlock {
   status: 'pending' | 'approved' | 'rejected';
 }
 
+export interface TestFormRow {
+  section: string;
+  questionNumber: number;
+  knowledge: string;
+  level: string;
+  prompt: string;
+}
+
 interface PreviewInterfaceProps {
   blocks: ExamBlock[];
+  testForm: TestFormRow[] | null;
   onApprove: (id: string) => void;
   onReject: (id: string, reason: string) => void;
 }
 
-export default function PreviewInterface({ blocks, onApprove, onReject }: PreviewInterfaceProps) {
+export default function PreviewInterface({ blocks, testForm, onApprove, onReject }: PreviewInterfaceProps) {
   const [rejectReason, setRejectReason] = useState<{ [key: string]: string }>({});
   const [showRejectInput, setShowRejectInput] = useState<{ [key: string]: boolean }>({});
 
@@ -86,13 +95,45 @@ export default function PreviewInterface({ blocks, onApprove, onReject }: Previe
         {/* INTERACTIVE BUILDER UI (Hidden when printing) */}
         <div className="max-w-[800px] mx-auto space-y-4 print:hidden">
           {blocks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center text-slate-400 mt-20">
-              <div className="bg-white p-4 rounded-full mb-4 shadow-sm border border-slate-100">
-                <Sparkles size={32} className="text-blue-300 animate-pulse" />
+            testForm ? (
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 animate-fade-in">
+                <h3 className="text-lg font-bold text-slate-800 mb-4 text-center">Cấu trúc Đề thi (Đã xác nhận)</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-700">
+                        <th className="border p-2">PHẦN</th>
+                        <th className="border p-2 text-center">CÂU</th>
+                        <th className="border p-2">KIẾN THỨC</th>
+                        <th className="border p-2 text-center">MỨC ĐỘ</th>
+                        <th className="border p-2">ĐỀ BÀI</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {testForm.map((row, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                          <td className="border p-2 font-medium">{row.section}</td>
+                          <td className="border p-2 text-center">{row.questionNumber}</td>
+                          <td className="border p-2 text-slate-600">{row.knowledge}</td>
+                          <td className="border p-2 text-center">
+                            <span className={`px-2 py-1 rounded text-xs font-bold ${row.level === 'NB' ? 'bg-green-100 text-green-700' : row.level === 'TH' ? 'bg-blue-100 text-blue-700' : row.level === 'VD' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}`}>{row.level}</span>
+                          </td>
+                          <td className="border p-2 text-xs text-slate-500 max-w-[200px] truncate" title={row.prompt}>{row.prompt}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <p className="text-sm font-medium">Chưa có câu hỏi nào được tạo.</p>
-              <p className="text-xs mt-2 max-w-[250px] text-center">Hãy chat với Trợ lý để bắt đầu tạo khối nội dung đề thi.</p>
-            </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-slate-400 mt-20">
+                <div className="bg-white p-4 rounded-full mb-4 shadow-sm border border-slate-100">
+                  <Sparkles size={32} className="text-blue-300 animate-pulse" />
+                </div>
+                <p className="text-sm font-medium">Chưa có câu hỏi nào được tạo.</p>
+                <p className="text-xs mt-2 max-w-[250px] text-center">Bạn có thể Tải lên Cấu trúc đề (Excel) ở cột bên trái, hoặc chat với Trợ lý để bắt đầu.</p>
+              </div>
+            )
           ) : (
             blocks.map((block) => {
               const isApproved = block.status === 'approved';

@@ -7,11 +7,10 @@ import MemoryModal, { Rule } from '@/components/MemoryModal';
 import Login from '@/components/Login';
 import { supabase } from '@/lib/supabase';
 
-const ChatInterface = dynamic(() => import('@/components/ChatInterface'), { ssr: false });
-const PreviewInterface = dynamic(() => import('@/components/PreviewInterface'), { ssr: false });
-import { ExamBlock } from '@/components/PreviewInterface';
 import { generateChatResponse } from '@/lib/gemini';
-import { Key, BrainCircuit, CheckSquare, Save } from 'lucide-react';
+import { Key, BrainCircuit, Save, Upload } from 'lucide-react';
+import * as xlsx from 'xlsx';
+import { ExamBlock, TestFormRow } from '@/components/PreviewInterface';
 
 type SessionState = 'idle' | 'active' | 'review';
 
@@ -117,11 +116,76 @@ export default function Home() {
     await triggerAI(text);
   };
 
+  const [testForm, setTestForm] = useState<TestFormRow[] | null>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const bstr = evt.target?.result;
+      const wb = xlsx.read(bstr, { type: 'binary' });
+      const wsname = wb.SheetNames[0];
+      const ws = wb.Sheets[wsname];
+      const data = xlsx.utils.sheet_to_json(ws, { header: 1 }) as any[][];
+
+      const parsedForm: TestFormRow[] = [];
+      let currentSection = '';
+      let currentKnowledge = '';
+      let currentLevel = '';
+      let currentPrompt = '';
+
+      for (let i = 1; i < data.length; i++) { // Skip header row 0
+        const row = data[i];
+        if (!row || row.length === 0) continue;
+        
+        const section = row[0] !== undefined && row[0] !== null ? String(row[0]).trim() : currentSection;
+        const qNumRaw = row[1];
+        if (qNumRaw === undefined || qNumRaw === null || isNaN(Number(qNumRaw))) continue; 
+        const qNum = Number(qNumRaw);
+
+        const knowledge = row[2] !== undefined && row[2] !== null ? String(row[2]).trim() : currentKnowledge;
+        const level = row[3] !== undefined && row[3] !== null ? String(row[3]).trim() : currentLevel;
+        const prompt = row[4] !== undefined && row[4] !== null ? String(row[4]).trim() : currentPrompt;
+
+        parsedForm.push({
+          section,
+          questionNumber: qNum,
+          knowledge,
+          level,
+          prompt
+        });
+
+        currentSection = section;
+        currentKnowledge = knowledge;
+        currentLevel = level;
+        currentPrompt = prompt;
+      }
+      
+      setTestForm(parsedForm);
+      alert(`Đã tải lên Cấu trúc đề thi gồm ${parsedForm.length} câu hỏi!`);
+    };
+    reader.readAsBinaryString(file);
+    e.target.value = ''; // Reset input
+  };
+
   const handleStartSession = () => {
     setSessionState('idle');
     setMessages([]);
     setBlocks([]);
-    triggerAI("[System: Bắt đầu phiên làm việc. Hãy tóm tắt các quy tắc bạn đang có và hỏi tôi đã sẵn sàng chưa bằng nút bấm Bắt đầu tạo đề thi.]", 'idle');
+    
+    let sysPrompt = "[System: Bắt đầu phiên làm việc. Hãy tóm tắt các quy tắc bạn đang có và hỏi tôi đã sẵn sàng chưa bằng nút bấm Bắt đầu tạo đề thi.]";
+    
+    if (testForm) {
+      let formMd = "| Phần | Câu | Kiến thức | Mức độ | Đề bài |\n|---|---|---|---|---|\n";
+      testForm.forEach(r => {
+        formMd += `| ${r.section} | ${r.questionNumber} | ${r.knowledge} | ${r.level} | ${r.prompt} |\n`;
+      });
+      sysPrompt = `[System: Bắt đầu phiên làm việc. Dưới đây là Cấu trúc Đề thi (Test Form) đã được tải lên:\n\n${formMd}\n\nHãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc bạn đang có và hỏi tôi đã sẵn sàng chưa bằng nút bấm <BUTTON>Bắt đầu tạo đề thi</BUTTON>.]`;
+    }
+
+    triggerAI(sysPrompt, 'idle');
   };
 
   const handleEndSession = () => {
@@ -266,6 +330,16 @@ export default function Home() {
           </div>
           
           <div className="flex space-x-1">
+            <label 
+              className="p-2 cursor-pointer text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-full transition-colors relative"
+              title="Tải lên Cấu trúc đề (Excel)"
+            >
+              <Upload size={16} />
+              <input type="file" accept=".xlsx, .xls" className="hidden" onChange={handleFileUpload} />
+              {testForm && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full"></span>
+              )}
+            </label>
             <button 
               onClick={() => setShowMemory(true)}
               className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors relative"
@@ -362,7 +436,8 @@ export default function Home() {
 
       <section className="flex-1 bg-slate-100 flex flex-col h-full overflow-hidden relative print:bg-white">
         <PreviewInterface 
-          blocks={blocks} 
+          blocks={blocks}
+          testForm={testForm} 
           onApprove={handleApproveBlock}
           onReject={handleRejectBlock}
         />
