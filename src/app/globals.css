@@ -27,3 +27,11 @@
     to { opacity: 1; transform: translateY(0); }
   }
 }
+
+@media print {
+  @page { margin: 2cm; size: A4; }
+  body { background: white; color: black; font-family: 'Times New Roman', Times, serif; font-size: 13pt; line-height: 1.5; }
+  .print-hide { display: none !important; }
+  .prose { max-width: none !important; color: black !important; }
+}
+
