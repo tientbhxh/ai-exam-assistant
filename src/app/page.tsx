@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 
 const ChatInterface = dynamic(() => import('@/components/ChatInterface'), { ssr: false });
 const PreviewInterface = dynamic(() => import('@/components/PreviewInterface'), { ssr: false });
+import { ExamBlock } from '@/components/PreviewInterface';
 import { generateChatResponse } from '@/lib/gemini';
 import { Key, BrainCircuit, CheckSquare, Save } from 'lucide-react';
 
@@ -119,7 +120,7 @@ export default function Home() {
   const handleStartSession = () => {
     setSessionState('idle');
     setMessages([]);
-    setExamContent(null);
+    setBlocks([]);
     triggerAI("[System: Bắt đầu phiên làm việc. Hãy tóm tắt các quy tắc bạn đang có và hỏi tôi đã sẵn sàng chưa bằng nút bấm Bắt đầu tạo đề thi.]", 'idle');
   };
 
@@ -129,17 +130,46 @@ export default function Home() {
     triggerAI("[System: Cô giáo đã hoàn thành đề thi. Hãy phân tích toàn bộ lịch sử trò chuyện vừa rồi, xuất ra các quy tắc/thói quen mới (nếu có) bằng thẻ <RULE>...</RULE>. Nếu không có thì phản hồi Không có quy tắc mới.]", 'review');
   };
 
-  const [examContent, setExamContent] = useState<string | null>(null);
+  const [blocks, setBlocks] = useState<ExamBlock[]>([]);
+
+  const handleApproveBlock = (id: string) => {
+    setBlocks(prev => prev.map(b => b.id === id ? { ...b, status: 'approved' } : b));
+  };
+
+  const handleRejectBlock = (id: string, reason: string) => {
+    setBlocks(prev => prev.map(b => b.id === id ? { ...b, status: 'rejected' } : b));
+    triggerAI(`[System: Cô giáo đã TỪ CHỐI khối có id="${id}" với lý do: "${reason}". Hãy SỬA LẠI KHỐI ĐÓ (nhớ bọc lại bằng <BLOCK id="${id}">...</BLOCK>). Các khối khác giữ nguyên.]`);
+  };
 
   useEffect(() => {
     const assistantMessages = messages.filter(m => m.role === 'assistant');
     if (assistantMessages.length > 0) {
-      const latestMessage = assistantMessages[assistantMessages.length - 1];
+      const newBlocksMap = new Map<string, ExamBlock>();
       
-      const examMatch = latestMessage.content.match(/<EXAM_CONTENT>([\s\S]*?)<\/EXAM_CONTENT>/);
-      if (examMatch && examMatch[1]) {
-        setExamContent(examMatch[1]);
-      }
+      messages.forEach(m => {
+        if (m.role === 'assistant') {
+          const blockMatches = [...m.content.matchAll(/<BLOCK id="([^"]+)">([\s\S]*?)<\/BLOCK>/g)];
+          blockMatches.forEach(match => {
+            const id = match[1];
+            const content = match[2].trim();
+            newBlocksMap.set(id, { id, content, status: 'pending' });
+          });
+        }
+      });
+
+      setBlocks(prev => {
+        if (messages.length === 0) return [];
+        const merged = Array.from(newBlocksMap.values()).map(newBlock => {
+          const existing = prev.find(p => p.id === newBlock.id);
+          if (existing && existing.content === newBlock.content) {
+            return existing;
+          }
+          return newBlock;
+        });
+        return merged;
+      });
+      
+      const latestMessage = assistantMessages[assistantMessages.length - 1];
       
       if (sessionState === 'review' && !isLoading) {
         const ruleMatches = [...latestMessage.content.matchAll(/<RULE>([\s\S]*?)<\/RULE>/g)];
@@ -172,7 +202,7 @@ export default function Home() {
     setSuggestedRules([]);
     setSessionState('idle');
     setMessages([]);
-    setExamContent(null);
+    setBlocks([]);
     alert("Đã kết thúc phiên và lưu các quy tắc thành công!");
   };
 
@@ -180,11 +210,11 @@ export default function Home() {
     setSuggestedRules([]);
     setSessionState('idle');
     setMessages([]);
-    setExamContent(null);
+    setBlocks([]);
   };
 
   const displayMessages = messages.filter(m => !m.content.startsWith('[System:')).map(m => {
-    let content = m.content.replace(/<EXAM_CONTENT>[\s\S]*?<\/EXAM_CONTENT>/g, '\n\n*✅ Đã cập nhật đề thi ở bảng bên phải.*');
+    let content = m.content.replace(/<BLOCK id="[^"]+">[\s\S]*?<\/BLOCK>/g, '\n\n*✅ Khối nội dung đã được kết xuất ở bảng bên phải.*');
     content = content.replace(/<RULE>([\s\S]*?)<\/RULE>/g, '');
 
     const buttons: string[] = [];
@@ -331,7 +361,11 @@ export default function Home() {
       </section>
 
       <section className="flex-1 bg-slate-100 flex flex-col h-full overflow-hidden relative print:bg-white">
-        <PreviewInterface content={examContent} />
+        <PreviewInterface 
+          blocks={blocks} 
+          onApprove={handleApproveBlock}
+          onReject={handleRejectBlock}
+        />
       </section>
     </main>
   );

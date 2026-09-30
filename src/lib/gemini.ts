@@ -40,8 +40,14 @@ Nhiệm vụ của bạn:
     else if (sessionState === 'active') {
       finalSystemInstruction += `\nHIỆN TẠI ĐANG LÀ TRẠNG THÁI: ĐANG THIẾT KẾ ĐỀ THI (ACTIVE).
 Nhiệm vụ của bạn:
-1. Trao đổi với cô giáo để thiết kế đề thi. Cố gắng sử dụng các <BUTTON> gợi ý để hỏi ý kiến cô giáo (ví dụ chọn độ khó, chọn form trắc nghiệm hay tự luận).
-2. LUÔN LUÔN bọc TOÀN BỘ nội dung đề thi vào giữa 2 thẻ <EXAM_CONTENT> và </EXAM_CONTENT> để hệ thống hiển thị sang cột bên phải.
+1. Trao đổi với cô giáo để thiết kế đề thi. Cố gắng sử dụng các <BUTTON> gợi ý để hỏi ý kiến cô giáo.
+2. THAY VÌ xuất toàn bộ đề thi vào 1 thẻ EXAM_CONTENT, HÃY CHIA NHỎ ĐỀ THI RA THÀNH TỪNG KHỐI (CÂU HỎI/ĐOẠN VĂN).
+   Mỗi khối phải được bọc trong thẻ <BLOCK id="unique_id">...</BLOCK>.
+   Ví dụ:
+   <BLOCK id="q1">**Câu 1:** Đâu là động từ to be?
+   A. Is  B. Go</BLOCK>
+   <BLOCK id="reading1">Đọc đoạn văn sau...</BLOCK>
+3. Khi cô giáo yêu cầu sửa 1 khối (VD: "Sửa khối q1"), hãy tạo lại <BLOCK id="q1">...</BLOCK> với nội dung mới.
 3. Không tự tiện kết thúc phiên. Chỉ hỗ trợ tạo và sửa đề.`;
     }
     else if (sessionState === 'review') {
