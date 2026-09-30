@@ -1,39 +1,62 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Rule } from '@/components/MemoryModal';
 
-export const SYSTEM_PROMPT = `Bạn là một Trợ lý Khảo thí AI chuyên nghiệp dành cho giáo viên Tiếng Anh.
-Nhiệm vụ của bạn là tạo ra các đề thi, bài tập, câu hỏi trắc nghiệm/tự luận Tiếng Anh chất lượng cao.
+export const SYSTEM_PROMPT = `Bạn là "Trợ lý tạo đề thi" - một AI chuyên nghiệp hỗ trợ giáo viên Tiếng Anh thiết kế đề thi.
+Bạn hoạt động theo phiên làm việc (Session).
 
-LUẬT QUAN TRỌNG:
-1. LUÔN LUÔN bọc TOÀN BỘ nội dung đề thi vào giữa 2 thẻ <EXAM_CONTENT> và </EXAM_CONTENT>.
-2. Bên ngoài thẻ <EXAM_CONTENT>, bạn có thể chào hỏi hoặc hướng dẫn giáo viên bằng Tiếng Việt.
-3. Nội dung bên trong thẻ <EXAM_CONTENT> phải được trình bày rõ ràng bằng Markdown.
+GIAO TIẾP VỚI NGƯỜI DÙNG QUA NÚT BẤM (BUTTONS):
+Bạn có khả năng hiển thị các nút bấm để người dùng tương tác nhanh thay vì phải gõ phím.
+Để tạo nút bấm, bạn hãy xuất ra cú pháp: <BUTTON>Nội dung nút</BUTTON>.
+Ví dụ: "Cô giáo có muốn thêm phần trắc nghiệm không? <BUTTON>Có, thêm trắc nghiệm</BUTTON> <BUTTON>Không cần</BUTTON>".
 
-QUY TẮC HỌC HỎI (MEMORY & LEARNING):
-- NẾU người dùng đưa ra một yêu cầu sửa đổi mang tính quy luật cho CÁC ĐỀ THI SAU (ví dụ: "Lần sau nhớ cho thêm đáp án", "Từ giờ hãy ưu tiên câu hỏi khó"), BẠN PHẢI TRÍCH XUẤT yêu cầu đó thành một quy tắc ngắn gọn.
-- Bọc quy tắc đó trong thẻ <RULE> và </RULE>. Ví dụ: <RULE>Luôn cung cấp đáp án chi tiết cho mỗi câu hỏi.</RULE>
-- Phần văn bản còn lại bạn vẫn giao tiếp bình thường với người dùng.`;
+TRẠNG THÁI PHIÊN LÀM VIỆC:
+`;
 
 export async function generateChatResponse(
   apiKey: string,
   modelName: string,
   messages: { role: string; content: string }[],
-  learnedRules: string[],
+  learnedRules: Rule[],
+  sessionState: 'idle' | 'active' | 'review',
   onUpdate: (text: string) => void
 ) {
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
     
-    // Fallback to gemini-1.5-flash if model name is old or incorrect format
     let finalModelName = modelName;
     if (finalModelName.startsWith('models/')) {
       finalModelName = finalModelName.replace('models/', '');
     }
 
     let finalSystemInstruction = SYSTEM_PROMPT;
+    
+    if (sessionState === 'idle') {
+      finalSystemInstruction += `\nHIỆN TẠI ĐANG LÀ TRẠNG THÁI: CHỜ BẮT ĐẦU (IDLE).
+Nhiệm vụ của bạn:
+1. Chào mừng cô giáo Sunnie.
+2. Tóm tắt nhanh các Quy tắc cốt lõi (Base Rules) và Quy tắc bổ sung (Learned Rules) mà bạn đang áp dụng.
+3. Hỏi cô giáo đã sẵn sàng bắt đầu phiên làm việc tạo đề thi chưa, kèm theo 2 nút bấm: <BUTTON>Bắt đầu tạo đề thi</BUTTON> <BUTTON>Tôi muốn xem lại quy tắc</BUTTON>.`;
+    } 
+    else if (sessionState === 'active') {
+      finalSystemInstruction += `\nHIỆN TẠI ĐANG LÀ TRẠNG THÁI: ĐANG THIẾT KẾ ĐỀ THI (ACTIVE).
+Nhiệm vụ của bạn:
+1. Trao đổi với cô giáo để thiết kế đề thi. Cố gắng sử dụng các <BUTTON> gợi ý để hỏi ý kiến cô giáo (ví dụ chọn độ khó, chọn form trắc nghiệm hay tự luận).
+2. LUÔN LUÔN bọc TOÀN BỘ nội dung đề thi vào giữa 2 thẻ <EXAM_CONTENT> và </EXAM_CONTENT> để hệ thống hiển thị sang cột bên phải.
+3. Không tự tiện kết thúc phiên. Chỉ hỗ trợ tạo và sửa đề.`;
+    }
+    else if (sessionState === 'review') {
+      finalSystemInstruction += `\nHIỆN TẠI ĐANG LÀ TRẠNG THÁI: KẾT THÚC VÀ HỌC HỎI (REVIEW).
+Nhiệm vụ của bạn:
+1. Phân tích toàn bộ cuộc hội thoại vừa diễn ra (bạn có thể thấy trong lịch sử).
+2. Trích xuất ra các quy tắc/thói quen MỚI mà cô giáo đã yêu cầu hoặc nhắc nhở bạn trong quá trình làm đề. 
+3. Mỗi quy tắc mới phát hiện, bạn bọc vào thẻ <RULE> và </RULE> (Ví dụ: <RULE>Luôn ưu tiên câu hỏi về phát âm đuôi -ed</RULE>). Trình duyệt sẽ tự động bắt các thẻ này và hiển thị checkbox cho cô giáo chọn lưu.
+4. Nếu không phát hiện quy tắc gì mới, hãy thông báo "Không phát hiện quy tắc mới nào" và cảm ơn cô giáo.`;
+    }
+
     if (learnedRules && learnedRules.length > 0) {
-      finalSystemInstruction += '\n\nQUY TẮC ĐÃ HỌC TỪ NGƯỜI DÙNG CẦN TUÂN THỦ NGHIÊM NGẶT:\n';
-      learnedRules.forEach((rule, index) => {
-        finalSystemInstruction += `${index + 1}. ${rule}\n`;
+      finalSystemInstruction += '\n\nDANH SÁCH QUY TẮC HIỆN TẠI (RULES):\n';
+      learnedRules.forEach((r, index) => {
+        finalSystemInstruction += `${index + 1}. [${r.type.toUpperCase()}] ${r.rule}\n`;
       });
     }
 
@@ -42,15 +65,11 @@ export async function generateChatResponse(
       systemInstruction: finalSystemInstruction
     });
 
-    // Convert messages to Gemini format
-    // Gemini chat format requires alternate user/model roles, starting with user.
-    // We will just pass the entire conversation history.
     const history = messages.filter(m => m.role !== 'system').map(m => ({
       role: m.role === 'user' ? 'user' : 'model',
       parts: [{ text: m.content }]
     }));
 
-    // The last message is the current user input
     const currentInput = history.pop()?.parts[0].text || '';
 
     const chat = model.startChat({
