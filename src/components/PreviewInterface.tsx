@@ -149,7 +149,7 @@ export default function PreviewInterface({ blocks, testForm, onApprove, onReject
                     'border-slate-200 hover:border-blue-300'
                   }`}
                 >
-                  <div className={`p-4 prose prose-slate max-w-none prose-p:text-sm prose-li:text-sm ${
+                  <div className={`p-4 prose prose-slate max-w-none prose-p:text-sm prose-li:text-sm whitespace-pre-wrap ${
                     isRejected ? 'opacity-50' : ''
                   }`}>
                     <ReactMarkdown>{block.content}</ReactMarkdown>
@@ -236,7 +236,7 @@ export default function PreviewInterface({ blocks, testForm, onApprove, onReject
         {/* PRINT/EXPORT VIEW (Hidden in UI, visible when printing) */}
         <div 
           id="exam-content" 
-          className="hidden print:block prose prose-slate max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h1:text-center prose-h1:mb-8 prose-h2:text-lg prose-h2:mt-6 prose-p:text-sm prose-li:text-sm prose-table:w-full prose-table:border-collapse prose-th:border prose-th:p-2 prose-td:border prose-td:p-2"
+          className="hidden print:block prose prose-slate max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h1:text-center prose-h1:mb-8 prose-h2:text-lg prose-h2:mt-6 prose-p:text-sm prose-li:text-sm prose-table:w-full prose-table:border-collapse prose-th:border prose-th:p-2 prose-td:border prose-td:p-2 whitespace-pre-wrap"
         >
           <ReactMarkdown>{fullContent}</ReactMarkdown>
         </div>
