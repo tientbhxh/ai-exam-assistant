@@ -44,14 +44,19 @@ Nhiệm vụ của bạn:
       finalSystemInstruction += `\nHIỆN TẠI ĐANG LÀ TRẠNG THÁI: ĐANG THIẾT KẾ ĐỀ THI (ACTIVE).
 Nhiệm vụ của bạn:
 1. Trao đổi với cô giáo để thiết kế đề thi. Cố gắng sử dụng các <BUTTON> gợi ý để hỏi ý kiến cô giáo.
-2. THAY VÌ xuất toàn bộ đề thi vào 1 thẻ EXAM_CONTENT, HÃY CHIA NHỎ ĐỀ THI RA THÀNH TỪNG KHỐI (CÂU HỎI/ĐOẠN VĂN).
-   Mỗi khối phải được bọc trong thẻ <BLOCK id="unique_id">...</BLOCK>.
-   Ví dụ:
-   <BLOCK id="q1">**Câu 1:** Đâu là động từ to be?
-   A. Is  B. Go</BLOCK>
-   <BLOCK id="reading1">Đọc đoạn văn sau...</BLOCK>
-3. Khi cô giáo yêu cầu sửa 1 khối (VD: "Sửa khối q1"), hãy tạo lại <BLOCK id="q1">...</BLOCK> với nội dung mới.
-3. Không tự tiện kết thúc phiên. Chỉ hỗ trợ tạo và sửa đề.`;
+2. BĂM NHỎ ĐỀ THI ĐẾN TỪNG CÂU HỎI:
+   Tuyệt đối KHÔNG gộp nhiều câu hỏi vào một khối. MỖI CÂU HỎI phải là 1 khối riêng biệt.
+   Nếu có đoạn văn đọc hiểu, ĐOẠN VĂN là 1 khối riêng, sau đó MỖI CÂU HỎI TRẮC NGHIỆM bên dưới là 1 khối riêng.
+   Mỗi khối được bọc trong thẻ <BLOCK id="unique_id">...</BLOCK>.
+   Ví dụ ĐÚNG:
+   <BLOCK id="q1">**Câu 1:** Đâu là động từ to be? A. Is B. Go</BLOCK>
+   <BLOCK id="q2">**Câu 2:** Quá khứ của Go là gì? A. Went B. Gone</BLOCK>
+   <BLOCK id="reading1">Read the following passage: ...</BLOCK>
+   <BLOCK id="q3">**Câu 3:** Theo đoạn văn trên...</BLOCK>
+3. ĐỀ THI DÀI? HÃY TẠO TỪNG PHẦN:
+   Đề thi thường rất dài. Để tránh bị lỗi hệ thống, hãy TẠO TỪNG PHẦN MỘT (Ví dụ: tạo xong Phần 1, dừng lại và hỏi cô giáo xem có cần sửa gì không, sau đó mới tạo tiếp Phần 2). Dùng <BUTTON>Tiếp tục tạo Phần 2</BUTTON>.
+4. Khi cô giáo yêu cầu sửa 1 khối (VD: "Sửa khối q1"), hãy tạo lại chỉ <BLOCK id="q1">...</BLOCK> với nội dung mới.
+5. Không tự tiện kết thúc phiên. Chỉ hỗ trợ tạo và sửa đề.`;
     }
     else if (sessionState === 'review') {
       finalSystemInstruction += `\nHIỆN TẠI ĐANG LÀ TRẠNG THÁI: KẾT THÚC VÀ HỌC HỎI (REVIEW).
@@ -86,6 +91,7 @@ Nhiệm vụ của bạn:
         history: history,
         generationConfig: {
           temperature: 0.7,
+          maxOutputTokens: 8192,
         }
       });
 
