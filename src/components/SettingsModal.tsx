@@ -12,6 +12,8 @@ interface SettingsModalProps {
   setOpenRouterKeys: (keys: string[]) => void;
   selectedModel: string;
   setSelectedModel: (model: string) => void;
+  smartModel: string;
+  setSmartModel: (model: string) => void;
 }
 
 const OPENROUTER_MODELS = [
@@ -28,7 +30,8 @@ export default function SettingsModal({
   provider, setProvider,
   apiKeys, setApiKeys, 
   openRouterKeys, setOpenRouterKeys,
-  selectedModel, setSelectedModel 
+  selectedModel, setSelectedModel,
+  smartModel, setSmartModel
 }: SettingsModalProps) {
   
   const [activeTab, setActiveTab] = useState<'google' | 'openrouter'>(provider);
@@ -38,6 +41,7 @@ export default function SettingsModal({
   
   const [newKey, setNewKey] = useState('');
   const [modelInput, setModelInput] = useState(selectedModel);
+  const [smartModelInput, setSmartModelInput] = useState(smartModel);
   
   const [availableModelsGoogle, setAvailableModelsGoogle] = useState<any[]>([]);
   const [availableModelsOpenRouter, setAvailableModelsOpenRouter] = useState<any[]>([]);
@@ -48,7 +52,8 @@ export default function SettingsModal({
     setKeysInputGoogle(apiKeys || []);
     setKeysInputOpenRouter(openRouterKeys || []);
     setModelInput(selectedModel);
-  }, [isOpen, provider, apiKeys, openRouterKeys, selectedModel]);
+    setSmartModelInput(smartModel);
+  }, [isOpen, provider, apiKeys, openRouterKeys, selectedModel, smartModel]);
 
   // Load available models automatically if key exists when opened (for Google)
   useEffect(() => {
@@ -81,6 +86,8 @@ export default function SettingsModal({
         if (validModels.length > 0 && activeTab === 'google') {
            const exists = validModels.find((m: any) => m.id === modelInput);
            if (!exists) setModelInput(validModels[0].id);
+           const existsSmart = validModels.find((m: any) => m.id === smartModelInput);
+           if (!existsSmart && smartModelInput !== 'none') setSmartModelInput('none');
         }
       }
     } catch (e) {
@@ -118,6 +125,8 @@ export default function SettingsModal({
         if (validModels.length > 0 && activeTab === 'openrouter') {
            const exists = validModels.find((m: any) => m.id === modelInput);
            if (!exists) setModelInput(validModels[0].id);
+           const existsSmart = validModels.find((m: any) => m.id === smartModelInput);
+           if (!existsSmart && smartModelInput !== 'none') setSmartModelInput('none');
         }
       }
     } catch (e) {
@@ -139,14 +148,21 @@ export default function SettingsModal({
     if (activeTab === 'openrouter' && availableModelsOpenRouter.length === 0) {
       const exists = OPENROUTER_MODELS.find(m => m.id === modelInput);
       if (!exists) finalModel = OPENROUTER_MODELS[0].id;
+      
+      const existsSmart = OPENROUTER_MODELS.find(m => m.id === smartModelInput);
+      if (!existsSmart && smartModelInput !== 'none') setSmartModelInput('none');
     }
     
+    let finalSmartModel = smartModelInput;
+    
     localStorage.setItem('gemini_model', finalModel); // Dùng chung key localStorage cho tiện
+    localStorage.setItem('smart_model', finalSmartModel);
     
     setProvider(activeTab);
     setApiKeys(keysInputGoogle);
     setOpenRouterKeys(keysInputOpenRouter);
     setSelectedModel(finalModel);
+    setSmartModel(finalSmartModel);
     onClose();
 
     try {
@@ -199,9 +215,19 @@ export default function SettingsModal({
       if (!existsInFetched && !existsInHardcoded) {
         setModelInput(availableModelsOpenRouter.length > 0 ? availableModelsOpenRouter[0].id : OPENROUTER_MODELS[0].id);
       }
+      const existsSmartFetched = availableModelsOpenRouter.find(m => m.id === smartModelInput);
+      const existsSmartHardcoded = OPENROUTER_MODELS.find(m => m.id === smartModelInput);
+      if (!existsSmartFetched && !existsSmartHardcoded && smartModelInput !== 'none') {
+        setSmartModelInput('none');
+      }
     } else {
       const exists = availableModelsGoogle.find(m => m.id === modelInput);
       if (!exists && availableModelsGoogle.length > 0) setModelInput(availableModelsGoogle[0].id);
+      
+      const existsSmart = availableModelsGoogle.find(m => m.id === smartModelInput);
+      if (!existsSmart && availableModelsGoogle.length > 0 && smartModelInput !== 'none') {
+        setSmartModelInput('none');
+      }
     }
   };
 
@@ -298,33 +324,65 @@ export default function SettingsModal({
             )}
           </div>
 
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Model sử dụng:</label>
-            <select
-              value={modelInput}
-              onChange={(e) => setModelInput(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 text-sm rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {activeTab === 'google' ? (
-                availableModelsGoogle.length > 0 ? (
-                  availableModelsGoogle.map(model => (
-                    <option key={model.id} value={model.id}>{model.name}</option>
-                  ))
+          <div className="mb-6 flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Mô hình Thợ Phụ <br/><span className="text-xs font-normal text-slate-500">(Xử lý tác vụ cơ bản, cực nhanh)</span></label>
+              <select
+                value={modelInput}
+                onChange={(e) => setModelInput(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 text-sm rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {activeTab === 'google' ? (
+                  availableModelsGoogle.length > 0 ? (
+                    availableModelsGoogle.map(model => (
+                      <option key={model.id} value={model.id}>{model.name}</option>
+                    ))
+                  ) : (
+                    <option value={modelInput}>{modelInput} (Hãy Quét Model)</option>
+                  )
                 ) : (
-                  <option value={modelInput}>{modelInput} (Hãy Quét Model)</option>
-                )
-              ) : (
-                availableModelsOpenRouter.length > 0 ? (
-                  availableModelsOpenRouter.map(model => (
-                    <option key={model.id} value={model.id}>{model.name}</option>
-                  ))
+                  availableModelsOpenRouter.length > 0 ? (
+                    availableModelsOpenRouter.map(model => (
+                      <option key={model.id} value={model.id}>{model.name}</option>
+                    ))
+                  ) : (
+                    OPENROUTER_MODELS.map(model => (
+                      <option key={model.id} value={model.id}>{model.name}</option>
+                    ))
+                  )
+                )}
+              </select>
+            </div>
+            
+            <div className="flex-1">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Mô hình Thợ Chính <br/><span className="text-xs font-normal text-slate-500">(Gặp câu Khó/Reading mới gọi)</span></label>
+              <select
+                value={smartModelInput}
+                onChange={(e) => setSmartModelInput(e.target.value)}
+                className="w-full bg-indigo-50 border border-indigo-200 text-sm rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-indigo-900"
+              >
+                <option value="none">❌ Không dùng Thợ Chính (Chỉ dùng Thợ Phụ)</option>
+                {activeTab === 'google' ? (
+                  availableModelsGoogle.length > 0 ? (
+                    availableModelsGoogle.map(model => (
+                      <option key={`smart-${model.id}`} value={model.id}>{model.name}</option>
+                    ))
+                  ) : (
+                    <option value={smartModelInput !== 'none' ? smartModelInput : 'gemini-3.5-pro'}>{smartModelInput !== 'none' ? smartModelInput : 'gemini-3.5-pro'} (Hãy Quét Model)</option>
+                  )
                 ) : (
-                  OPENROUTER_MODELS.map(model => (
-                    <option key={model.id} value={model.id}>{model.name}</option>
-                  ))
-                )
-              )}
-            </select>
+                  availableModelsOpenRouter.length > 0 ? (
+                    availableModelsOpenRouter.map(model => (
+                      <option key={`smart-${model.id}`} value={model.id}>{model.name}</option>
+                    ))
+                  ) : (
+                    OPENROUTER_MODELS.map(model => (
+                      <option key={`smart-${model.id}`} value={model.id}>{model.name}</option>
+                    ))
+                  )
+                )}
+              </select>
+            </div>
           </div>
           
           <div className="flex justify-end space-x-2 pt-2 border-t border-slate-100">

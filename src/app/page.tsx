@@ -22,6 +22,7 @@ export default function Home() {
   const [openRouterKeys, setOpenRouterKeys] = useState<string[]>([]);
   const [provider, setProvider] = useState<'google' | 'openrouter'>('google');
   const [selectedModel, setSelectedModel] = useState<string>('gemini-3.5-flash');
+  const [smartModel, setSmartModel] = useState<string>('none');
   const [showSettings, setShowSettings] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success'|'error'|'info'} | null>(null);
   
@@ -65,6 +66,7 @@ export default function Home() {
     const savedProvider = localStorage.getItem('ai_provider');
     const savedOldKey = localStorage.getItem('gemini_api_key');
     const savedModel = localStorage.getItem('gemini_model');
+    const savedSmartModel = localStorage.getItem('smart_model');
     const role = localStorage.getItem('auth_role');
     
     if (role) {
@@ -85,6 +87,7 @@ export default function Home() {
     }
     
     if (savedModel) setSelectedModel(savedModel);
+    if (savedSmartModel) setSmartModel(savedSmartModel);
   }, []);
 
   const [messages, setMessages] = useState<any[]>([]);
@@ -114,11 +117,26 @@ export default function Home() {
     const assistantMessageId = (Date.now() + 1).toString();
     setMessages(prev => [...prev, { id: assistantMessageId, role: 'assistant', content: '' }]);
 
+    let finalModelToUse = selectedModel;
+    if (smartModel && smartModel !== 'none') {
+      const lowerInput = inputText.toLowerCase();
+      const isHardTask = lowerInput.includes('vận dụng cao') || lowerInput.includes('vdc') || 
+                         lowerInput.includes('reading') || lowerInput.includes('đọc hiểu') || 
+                         lowerInput.includes('đoạn văn') || lowerInput.includes('listening') || 
+                         lowerInput.includes('nghe') || lowerInput.includes('bài nghe');
+      
+      if (isHardTask) {
+        finalModelToUse = smartModel;
+        const shortName = smartModel.replace('models/', '').replace('anthropic/', '').replace('openai/', '').replace('meta-llama/', '').replace('google/', '');
+        showToast(`Đã tự động gọi Thợ Chính (${shortName}) để xử lý tác vụ phức tạp!`, "success");
+      }
+    }
+
     try {
       await generateChatResponse(
         provider,
         provider === 'google' ? apiKeys : openRouterKeys,
-        selectedModel,
+        finalModelToUse,
         newMessages,
         learnedRules,
         currentState,
@@ -387,6 +405,8 @@ Hãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc b
         setOpenRouterKeys={setOpenRouterKeys}
         selectedModel={selectedModel}
         setSelectedModel={setSelectedModel}
+        smartModel={smartModel}
+        setSmartModel={setSmartModel}
       />
       
       <MemoryModal
