@@ -326,7 +326,7 @@ export default function SettingsModal({
 
           <div className="mb-6 flex gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Mô hình Thợ Phụ <br/><span className="text-xs font-normal text-slate-500">(Xử lý tác vụ cơ bản, cực nhanh)</span></label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Mô hình Cơ bản <br/><span className="text-xs font-normal text-slate-500">(Xử lý tác vụ thông thường, tốc độ cao)</span></label>
               <select
                 value={modelInput}
                 onChange={(e) => setModelInput(e.target.value)}
@@ -355,13 +355,13 @@ export default function SettingsModal({
             </div>
             
             <div className="flex-1">
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Mô hình Thợ Chính <br/><span className="text-xs font-normal text-slate-500">(Gặp câu Khó/Reading mới gọi)</span></label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Mô hình Chuyên sâu <br/><span className="text-xs font-normal text-slate-500">(Chỉ gọi khi làm câu Khó / Reading)</span></label>
               <select
                 value={smartModelInput}
                 onChange={(e) => setSmartModelInput(e.target.value)}
                 className="w-full bg-indigo-50 border border-indigo-200 text-sm rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-indigo-900"
               >
-                <option value="none">❌ Không dùng Thợ Chính (Chỉ dùng Thợ Phụ)</option>
+                <option value="none">❌ Không dùng (Chỉ dùng Mô hình Cơ bản)</option>
                 {activeTab === 'google' ? (
                   availableModelsGoogle.length > 0 ? (
                     availableModelsGoogle.map(model => (

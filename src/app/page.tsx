@@ -128,7 +128,7 @@ export default function Home() {
       if (isHardTask) {
         finalModelToUse = smartModel;
         const shortName = smartModel.replace('models/', '').replace('anthropic/', '').replace('openai/', '').replace('meta-llama/', '').replace('google/', '');
-        showToast(`Đã tự động gọi Thợ Chính (${shortName}) để xử lý tác vụ phức tạp!`, "success");
+        showToast(`Đã tự động gọi Mô hình Chuyên sâu (${shortName}) để xử lý tác vụ phức tạp!`, "success");
       }
     }
 
