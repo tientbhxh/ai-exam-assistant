@@ -19,8 +19,8 @@ const OPENROUTER_MODELS = [
   { id: '~openai/gpt-sol-latest', name: 'GPT Sol Latest (Thông minh nhất)' },
   { id: 'openai/gpt-4o', name: 'GPT-4o (Toàn diện, tốc độ)' },
   { id: 'openai/gpt-4o-mini', name: 'GPT-4o-mini (Siêu tốc, giá rẻ)' },
-  { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B (Mã nguồn mở, rất nhanh)' },
-  { id: 'google/gemini-flash-1.5-8b', name: 'Gemini 1.5 Flash-8B (Rất nhanh)' }
+  { id: 'google/gemini-3.5-pro', name: 'Gemini 3.5 Pro (Siêu việt)' },
+  { id: 'google/gemini-3.5-flash', name: 'Gemini 3.5 Flash (Cân bằng, nhanh)' }
 ];
 
 export default function SettingsModal({ 
