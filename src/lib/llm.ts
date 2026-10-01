@@ -180,6 +180,7 @@ Nhiệm vụ của bạn:
               model: modelName,
               messages: openRouterMessages,
               temperature: 0.7,
+              max_tokens: 4096,
               stream: true
             })
           });
