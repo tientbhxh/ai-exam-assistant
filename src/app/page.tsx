@@ -408,6 +408,14 @@ Hãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc b
                   {userRole === 'admin' ? 'Admin' : 'Giáo viên'}
                 </span>
               </p>
+              <div className="mt-1.5 flex items-center">
+                <span className={`px-1.5 py-0.5 text-[10px] uppercase font-bold rounded-sm border ${provider === 'google' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-purple-50 text-purple-600 border-purple-200'}`}>
+                  {provider === 'google' ? 'Google' : 'OpenRouter'}
+                </span>
+                <span className="ml-1.5 text-[11px] font-medium text-slate-400">
+                  {selectedModel.replace('models/', '').replace('anthropic/', '').replace('openai/', '').replace('meta-llama/', '').replace('google/', '')}
+                </span>
+              </div>
             </div>
             <button 
               onClick={() => {
