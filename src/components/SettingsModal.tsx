@@ -4,35 +4,58 @@ import { supabase } from '@/lib/supabase';
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  provider: 'google' | 'openrouter';
+  setProvider: (p: 'google' | 'openrouter') => void;
   apiKeys: string[];
   setApiKeys: (keys: string[]) => void;
+  openRouterKeys: string[];
+  setOpenRouterKeys: (keys: string[]) => void;
   selectedModel: string;
   setSelectedModel: (model: string) => void;
 }
 
-export default function SettingsModal({ isOpen, onClose, apiKeys, setApiKeys, selectedModel, setSelectedModel }: SettingsModalProps) {
-  const [keysInput, setKeysInput] = useState<string[]>(apiKeys || []);
+const OPENROUTER_MODELS = [
+  { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet (Đề xuất cho Reading/Logic)' },
+  { id: 'openai/gpt-4o', name: 'GPT-4o (Thông minh, toàn diện)' },
+  { id: 'openai/gpt-4o-mini', name: 'GPT-4o-mini (Siêu tốc, giá rẻ)' },
+  { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B (Mã nguồn mở, rất nhanh)' },
+  { id: 'google/gemini-flash-1.5-8b', name: 'Gemini 1.5 Flash-8B (Rất nhanh)' }
+];
+
+export default function SettingsModal({ 
+  isOpen, onClose, 
+  provider, setProvider,
+  apiKeys, setApiKeys, 
+  openRouterKeys, setOpenRouterKeys,
+  selectedModel, setSelectedModel 
+}: SettingsModalProps) {
+  
+  const [activeTab, setActiveTab] = useState<'google' | 'openrouter'>(provider);
+  
+  const [keysInputGoogle, setKeysInputGoogle] = useState<string[]>(apiKeys || []);
+  const [keysInputOpenRouter, setKeysInputOpenRouter] = useState<string[]>(openRouterKeys || []);
+  
   const [newKey, setNewKey] = useState('');
   const [modelInput, setModelInput] = useState(selectedModel);
-  const [availableModels, setAvailableModels] = useState<any[]>([]);
+  
+  const [availableModelsGoogle, setAvailableModelsGoogle] = useState<any[]>([]);
   const [isFetchingModels, setIsFetchingModels] = useState(false);
 
   useEffect(() => {
-    setKeysInput(apiKeys || []);
-  }, [apiKeys]);
-
-  useEffect(() => {
+    setActiveTab(provider);
+    setKeysInputGoogle(apiKeys || []);
+    setKeysInputOpenRouter(openRouterKeys || []);
     setModelInput(selectedModel);
-  }, [selectedModel]);
+  }, [isOpen, provider, apiKeys, openRouterKeys, selectedModel]);
 
-  // Load available models automatically if key exists when opened
+  // Load available models automatically if key exists when opened (for Google)
   useEffect(() => {
-    if (isOpen && keysInput.length > 0) {
-      fetchModels(keysInput[0]);
+    if (isOpen && activeTab === 'google' && keysInputGoogle.length > 0 && availableModelsGoogle.length === 0) {
+      fetchModelsGoogle(keysInputGoogle[0]);
     }
-  }, [isOpen]);
+  }, [isOpen, activeTab]);
 
-  const fetchModels = async (key: string) => {
+  const fetchModelsGoogle = async (key: string) => {
     if (!key.trim()) return;
     setIsFetchingModels(true);
     try {
@@ -46,17 +69,14 @@ export default function SettingsModal({ isOpen, onClose, apiKeys, setApiKeys, se
           )
           .map((model: any) => ({
             id: model.name.replace('models/', ''),
-            name: model.displayName || model.name.replace('models/', ''),
-            description: model.description || ''
+            name: model.displayName || model.name.replace('models/', '')
           }));
           
-        setAvailableModels(validModels);
-        if (validModels.length > 0) {
+        setAvailableModelsGoogle(validModels);
+        if (validModels.length > 0 && activeTab === 'google') {
            const exists = validModels.find((m: any) => m.id === modelInput);
            if (!exists) setModelInput(validModels[0].id);
         }
-      } else {
-        console.error("Lỗi tải danh sách model:", data.error?.message);
       }
     } catch (e) {
       console.error(e);
@@ -68,22 +88,34 @@ export default function SettingsModal({ isOpen, onClose, apiKeys, setApiKeys, se
   if (!isOpen) return null;
 
   const handleSave = async () => {
-    localStorage.setItem('gemini_api_keys', JSON.stringify(keysInput));
-    localStorage.setItem('gemini_model', modelInput);
-    setApiKeys(keysInput);
-    setSelectedModel(modelInput);
+    localStorage.setItem('ai_provider', activeTab);
+    localStorage.setItem('gemini_api_keys', JSON.stringify(keysInputGoogle));
+    localStorage.setItem('openrouter_api_keys', JSON.stringify(keysInputOpenRouter));
+    
+    // Đảm bảo model được chọn hợp lệ với provider tương ứng
+    let finalModel = modelInput;
+    if (activeTab === 'openrouter') {
+      const exists = OPENROUTER_MODELS.find(m => m.id === modelInput);
+      if (!exists) finalModel = OPENROUTER_MODELS[0].id;
+    }
+    
+    localStorage.setItem('gemini_model', finalModel); // Dùng chung key localStorage cho tiện
+    
+    setProvider(activeTab);
+    setApiKeys(keysInputGoogle);
+    setOpenRouterKeys(keysInputOpenRouter);
+    setSelectedModel(finalModel);
     onClose();
 
     try {
       // Đồng bộ API Keys lên Cloud
-      await supabase.from('learned_rules').delete().eq('type', 'api_key');
+      await supabase.from('learned_rules').delete().in('type', ['api_key', 'openrouter_api_key']);
       
-      if (keysInput.length > 0) {
-        const inserts = keysInput.map(k => ({
-          type: 'api_key',
-          rule: k,
-          added_by: 'admin' // Hoặc 'sunnie', nhưng vì chỉ lưu key chung nên để admin
-        }));
+      const inserts: any[] = [];
+      keysInputGoogle.forEach(k => inserts.push({ type: 'api_key', rule: k, added_by: 'admin' }));
+      keysInputOpenRouter.forEach(k => inserts.push({ type: 'openrouter_api_key', rule: k, added_by: 'admin' }));
+      
+      if (inserts.length > 0) {
         await supabase.from('learned_rules').insert(inserts);
       }
     } catch (err) {
@@ -91,77 +123,121 @@ export default function SettingsModal({ isOpen, onClose, apiKeys, setApiKeys, se
     }
   };
 
+  const currentKeys = activeTab === 'google' ? keysInputGoogle : keysInputOpenRouter;
+  
   const handleAddKey = () => {
-    if (newKey.trim() && !keysInput.includes(newKey.trim())) {
-      setKeysInput([...keysInput, newKey.trim()]);
-      setNewKey('');
+    if (!newKey.trim()) return;
+    const val = newKey.trim();
+    if (activeTab === 'google' && !keysInputGoogle.includes(val)) {
+      setKeysInputGoogle([...keysInputGoogle, val]);
+    } else if (activeTab === 'openrouter' && !keysInputOpenRouter.includes(val)) {
+      setKeysInputOpenRouter([...keysInputOpenRouter, val]);
     }
+    setNewKey('');
   };
 
   const handleRemoveKey = (index: number) => {
-    const copy = [...keysInput];
-    copy.splice(index, 1);
-    setKeysInput(copy);
+    if (activeTab === 'google') {
+      const copy = [...keysInputGoogle];
+      copy.splice(index, 1);
+      setKeysInputGoogle(copy);
+    } else {
+      const copy = [...keysInputOpenRouter];
+      copy.splice(index, 1);
+      setKeysInputOpenRouter(copy);
+    }
+  };
+
+  const handleTabSwitch = (tab: 'google' | 'openrouter') => {
+    setActiveTab(tab);
+    // Khi chuyển tab, tự động chọn model mặc định đầu tiên nếu model hiện tại không thuộc provider mới
+    if (tab === 'openrouter') {
+      const exists = OPENROUTER_MODELS.find(m => m.id === modelInput);
+      if (!exists) setModelInput(OPENROUTER_MODELS[0].id);
+    } else {
+      const exists = availableModelsGoogle.find(m => m.id === modelInput);
+      if (!exists && availableModelsGoogle.length > 0) setModelInput(availableModelsGoogle[0].id);
+    }
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-      <div className="bg-white rounded-xl shadow-xl w-[450px] p-6 animate-fade-in">
-        <h2 className="text-lg font-bold text-slate-800 mb-2">Cấu hình API Key</h2>
-        <p className="text-sm text-slate-500 mb-4">
-          Nhập Google Gemini API Key của bạn để sử dụng ứng dụng. Key này được lưu trữ an toàn ngay trên trình duyệt của bạn (LocalStorage).
-        </p>
+      <div className="bg-white rounded-xl shadow-xl w-[480px] overflow-hidden animate-fade-in flex flex-col">
         
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-slate-700 mb-2">Danh sách API Keys:</label>
-          
-          <ul className="space-y-2 mb-3 max-h-[120px] overflow-y-auto custom-scrollbar">
-            {keysInput.map((k, idx) => (
-              <li key={idx} className="flex justify-between items-center bg-slate-50 border border-slate-200 rounded-md px-3 py-2">
-                <span className="text-xs text-slate-600 font-mono truncate mr-2">{k}</span>
-                <button 
-                  onClick={() => handleRemoveKey(idx)}
-                  className="text-red-500 hover:text-red-700 text-xs font-medium shrink-0"
-                >
-                  Xóa
-                </button>
-              </li>
-            ))}
-            {keysInput.length === 0 && (
-              <p className="text-xs text-slate-500 italic">Chưa có API Key nào.</p>
-            )}
-          </ul>
-
-          <div className="flex gap-2">
-            <input 
-              type="password"
-              value={newKey}
-              onChange={(e) => setNewKey(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddKey()}
-              className="flex-1 bg-slate-50 border border-slate-200 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Thêm API Key mới (AIzaSy...)"
-            />
-            <button 
-              onClick={handleAddKey}
-              disabled={!newKey.trim()}
-              className="px-3 py-2 bg-slate-800 text-white text-xs font-medium rounded hover:bg-slate-700 disabled:opacity-50"
-            >
-              Thêm
-            </button>
-          </div>
-          
-          <div className="mt-3">
-            <button 
-              onClick={() => keysInput.length > 0 && fetchModels(keysInput[0])} 
-              disabled={isFetchingModels || keysInput.length === 0}
-              className="text-xs font-medium text-blue-600 hover:text-blue-800 disabled:text-slate-400 disabled:cursor-not-allowed"
-            >
-              {isFetchingModels ? 'Đang tải danh sách...' : 'Quét Model hỗ trợ (Dùng Key #1)'}
-            </button>
-          </div>
+        {/* Header Tabs */}
+        <div className="flex border-b border-slate-200">
+          <button 
+            className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'google' ? 'border-blue-600 text-blue-600 bg-blue-50/50' : 'border-transparent text-slate-500 hover:bg-slate-50'}`}
+            onClick={() => handleTabSwitch('google')}
+          >
+            Google Gemini
+          </button>
+          <button 
+            className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'openrouter' ? 'border-purple-600 text-purple-600 bg-purple-50/50' : 'border-transparent text-slate-500 hover:bg-slate-50'}`}
+            onClick={() => handleTabSwitch('openrouter')}
+          >
+            OpenRouter
+          </button>
         </div>
 
-        {availableModels.length > 0 && (
+        <div className="p-6">
+          <p className="text-xs text-slate-500 mb-4 h-8">
+            {activeTab === 'google' 
+              ? "Sử dụng API trực tiếp từ Google AI Studio. Hoạt động rất nhanh và ổn định, có tự động Retry." 
+              : "Sử dụng cổng trung gian OpenRouter để truy cập GPT-4o, Claude 3.5. Yêu cầu API Key của OpenRouter."}
+          </p>
+          
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Danh sách API Keys ({activeTab === 'google' ? 'Google' : 'OpenRouter'}):</label>
+            
+            <ul className="space-y-2 mb-3 max-h-[120px] overflow-y-auto custom-scrollbar">
+              {currentKeys.map((k, idx) => (
+                <li key={idx} className="flex justify-between items-center bg-slate-50 border border-slate-200 rounded-md px-3 py-2">
+                  <span className="text-xs text-slate-600 font-mono truncate mr-2">{k}</span>
+                  <button 
+                    onClick={() => handleRemoveKey(idx)}
+                    className="text-red-500 hover:text-red-700 text-xs font-medium shrink-0"
+                  >
+                    Xóa
+                  </button>
+                </li>
+              ))}
+              {currentKeys.length === 0 && (
+                <p className="text-xs text-slate-500 italic">Chưa có API Key nào.</p>
+              )}
+            </ul>
+
+            <div className="flex gap-2">
+              <input 
+                type="password"
+                value={newKey}
+                onChange={(e) => setNewKey(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddKey()}
+                className="flex-1 bg-slate-50 border border-slate-200 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder={activeTab === 'google' ? "AIzaSy..." : "sk-or-v1-..."}
+              />
+              <button 
+                onClick={handleAddKey}
+                disabled={!newKey.trim()}
+                className={`px-3 py-2 text-white text-xs font-medium rounded disabled:opacity-50 ${activeTab === 'google' ? 'bg-slate-800 hover:bg-slate-700' : 'bg-purple-600 hover:bg-purple-700'}`}
+              >
+                Thêm
+              </button>
+            </div>
+            
+            {activeTab === 'google' && (
+              <div className="mt-3">
+                <button 
+                  onClick={() => keysInputGoogle.length > 0 && fetchModelsGoogle(keysInputGoogle[0])} 
+                  disabled={isFetchingModels || keysInputGoogle.length === 0}
+                  className="text-xs font-medium text-blue-600 hover:text-blue-800 disabled:text-slate-400 disabled:cursor-not-allowed"
+                >
+                  {isFetchingModels ? 'Đang tải danh sách...' : 'Quét Model hỗ trợ (Dùng Key #1)'}
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="mb-6">
             <label className="block text-sm font-semibold text-slate-700 mb-2">Model sử dụng:</label>
             <select
@@ -169,28 +245,36 @@ export default function SettingsModal({ isOpen, onClose, apiKeys, setApiKeys, se
               onChange={(e) => setModelInput(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 text-sm rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {availableModels.map(model => (
-                <option key={model.id} value={model.id}>
-                  {model.name}
-                </option>
-              ))}
+              {activeTab === 'google' ? (
+                availableModelsGoogle.length > 0 ? (
+                  availableModelsGoogle.map(model => (
+                    <option key={model.id} value={model.id}>{model.name}</option>
+                  ))
+                ) : (
+                  <option value={modelInput}>{modelInput} (Hãy Quét Model)</option>
+                )
+              ) : (
+                OPENROUTER_MODELS.map(model => (
+                  <option key={model.id} value={model.id}>{model.name}</option>
+                ))
+              )}
             </select>
           </div>
-        )}
-        
-        <div className="flex justify-end space-x-2">
-          {apiKeys && apiKeys.length > 0 && (
-            <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-md transition-colors">
-              Đóng
+          
+          <div className="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+            {((provider === 'google' && keysInputGoogle.length > 0) || (provider === 'openrouter' && keysInputOpenRouter.length > 0)) && (
+              <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-md transition-colors">
+                Đóng
+              </button>
+            )}
+            <button 
+              onClick={handleSave} 
+              disabled={currentKeys.length === 0}
+              className={`px-4 py-2 text-sm font-medium text-white disabled:bg-slate-300 rounded-md transition-colors ${activeTab === 'google' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-purple-600 hover:bg-purple-700'}`}
+            >
+              Lưu và Bắt đầu
             </button>
-          )}
-          <button 
-            onClick={handleSave} 
-            disabled={keysInput.length === 0}
-            className="px-4 py-2 text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:bg-slate-300 rounded-md transition-colors"
-          >
-            Lưu và Bắt đầu
-          </button>
+          </div>
         </div>
       </div>
     </div>

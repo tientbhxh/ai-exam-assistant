@@ -7,7 +7,7 @@ import MemoryModal, { Rule } from '@/components/MemoryModal';
 import Login from '@/components/Login';
 import { supabase } from '@/lib/supabase';
 
-import { generateChatResponse } from '@/lib/gemini';
+import { generateChatResponse } from '@/lib/llm';
 import { Key, BrainCircuit, Save, Upload } from 'lucide-react';
 import * as xlsx from 'xlsx';
 import { ExamBlock, TestFormRow } from '@/components/PreviewInterface';
@@ -19,6 +19,8 @@ type SessionState = 'idle' | 'active' | 'review';
 
 export default function Home() {
   const [apiKeys, setApiKeys] = useState<string[]>([]);
+  const [openRouterKeys, setOpenRouterKeys] = useState<string[]>([]);
+  const [provider, setProvider] = useState<'google' | 'openrouter'>('google');
   const [selectedModel, setSelectedModel] = useState<string>('gemini-3.5-flash');
   const [showSettings, setShowSettings] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success'|'error'|'info'} | null>(null);
@@ -46,10 +48,11 @@ export default function Home() {
         setLearnedRules(rules.filter(r => r.type !== 'api_key'));
         
         // Trích xuất các API Keys đã lưu trên Cloud
-        const cloudKeys = rules.filter(r => r.type === 'api_key').map(r => r.rule);
-        if (cloudKeys.length > 0) {
-          setApiKeys(cloudKeys);
-        }
+        const cloudGoogleKeys = rules.filter(r => r.type === 'api_key').map(r => r.rule);
+        if (cloudGoogleKeys.length > 0) setApiKeys(cloudGoogleKeys);
+
+        const cloudOpenRouterKeys = rules.filter(r => r.type === 'openrouter_api_key').map(r => r.rule);
+        if (cloudOpenRouterKeys.length > 0) setOpenRouterKeys(cloudOpenRouterKeys);
       }
     } catch (err) {
       console.error("Lỗi tải trí nhớ từ Supabase:", err);
@@ -57,7 +60,9 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const savedKeys = localStorage.getItem('gemini_api_keys');
+    const savedGoogleKeys = localStorage.getItem('gemini_api_keys');
+    const savedOpenRouterKeys = localStorage.getItem('openrouter_api_keys');
+    const savedProvider = localStorage.getItem('ai_provider');
     const savedOldKey = localStorage.getItem('gemini_api_key');
     const savedModel = localStorage.getItem('gemini_model');
     const role = localStorage.getItem('auth_role');
@@ -67,9 +72,11 @@ export default function Home() {
       fetchRules();
     }
 
-    if (savedKeys) {
-      setApiKeys(JSON.parse(savedKeys));
-    } else if (savedOldKey) {
+    if (savedGoogleKeys) setApiKeys(JSON.parse(savedGoogleKeys));
+    if (savedOpenRouterKeys) setOpenRouterKeys(JSON.parse(savedOpenRouterKeys));
+    if (savedProvider) setProvider(savedProvider as 'google' | 'openrouter');
+    
+    if (!savedGoogleKeys && savedOldKey) {
       setApiKeys([savedOldKey]);
       localStorage.setItem('gemini_api_keys', JSON.stringify([savedOldKey]));
       localStorage.removeItem('gemini_api_key');
@@ -87,8 +94,13 @@ export default function Home() {
   const handleInputChange = (e: any) => setInput(e.target.value);
 
   const triggerAI = async (inputText: string, forcedState?: SessionState) => {
-    if (!apiKeys || apiKeys.length === 0) {
-      showToast("Vui lòng nhập ít nhất 1 API Key trước khi gửi!", "error");
+    if (provider === 'google' && (!apiKeys || apiKeys.length === 0)) {
+      showToast("Vui lòng nhập ít nhất 1 Google API Key trước khi gửi!", "error");
+      setShowSettings(true);
+      return;
+    }
+    if (provider === 'openrouter' && (!openRouterKeys || openRouterKeys.length === 0)) {
+      showToast("Vui lòng nhập ít nhất 1 OpenRouter API Key trước khi gửi!", "error");
       setShowSettings(true);
       return;
     }
@@ -104,7 +116,8 @@ export default function Home() {
 
     try {
       await generateChatResponse(
-        apiKeys,
+        provider,
+        provider === 'google' ? apiKeys : openRouterKeys,
         selectedModel,
         newMessages,
         learnedRules,
@@ -366,8 +379,12 @@ Hãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc b
       <SettingsModal 
         isOpen={showSettings} 
         onClose={() => setShowSettings(false)} 
+        provider={provider}
+        setProvider={setProvider}
         apiKeys={apiKeys} 
         setApiKeys={setApiKeys} 
+        openRouterKeys={openRouterKeys}
+        setOpenRouterKeys={setOpenRouterKeys}
         selectedModel={selectedModel}
         setSelectedModel={setSelectedModel}
       />
