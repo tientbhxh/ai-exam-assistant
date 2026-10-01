@@ -233,7 +233,7 @@ export default function SettingsModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-      <div className="bg-white rounded-xl shadow-xl w-[480px] overflow-hidden animate-fade-in flex flex-col">
+      <div className="bg-white rounded-xl shadow-xl w-[640px] max-w-[95vw] overflow-hidden animate-fade-in flex flex-col">
         
         {/* Header Tabs */}
         <div className="flex border-b border-slate-200">
