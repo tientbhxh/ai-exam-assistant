@@ -1,8 +1,34 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Download, FileText, FileDown, Sparkles, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
+import { Download, FileText, FileDown, Sparkles, CheckCircle2, XCircle, RefreshCw, BarChart } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+
+// Helper function to calculate Flesch Reading Ease (100-point scale)
+function calculateReadability(text: string): number | null {
+  if (!text) return null;
+  const cleanText = text.replace(/[*#_>`~\[\]]|<[^>]+>/g, '').trim();
+  const words = cleanText.split(/\s+/).filter(w => w.match(/[a-zA-Z]/));
+  if (words.length < 40) return null; // Quá ngắn, không đo
+
+  const sentences = cleanText.split(/[.!?]+/).filter(Boolean).length || 1;
+  
+  let syllables = 0;
+  words.forEach(word => {
+    word = word.toLowerCase().replace(/[^a-z]/g, '');
+    if (!word) return;
+    if (word.length <= 3) { syllables += 1; return; }
+    word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
+    word = word.replace(/^y/, '');
+    const sylMatch = word.match(/[aeiouy]{1,2}/g);
+    syllables += sylMatch ? sylMatch.length : 1;
+  });
+
+  // Flesch Reading Ease formula
+  let fre = 206.835 - 1.015 * (words.length / sentences) - 84.6 * (syllables / words.length);
+  fre = Math.max(0, Math.min(100, fre)); // Giới hạn từ 0-100
+  return Math.round(fre);
+}
 
 export interface ExamBlock {
   id: string;
@@ -139,19 +165,34 @@ export default function PreviewInterface({ blocks, testForm, onApprove, onReject
             blocks.map((block) => {
               const isApproved = block.status === 'approved';
               const isRejected = block.status === 'rejected';
+              
+              // Đo Readability nếu là Khối chưa có level và khá dài
+              let readabilityScore = null;
+              if (!block.level || block.level.trim() === '') {
+                 readabilityScore = calculateReadability(block.content);
+              }
 
               return (
                 <div 
                   key={block.id} 
-                  className={`bg-white shadow-sm border rounded-xl overflow-hidden transition-all duration-300 ${
+                  className={`bg-white shadow-sm border rounded-xl overflow-hidden transition-all duration-300 relative ${
                     isApproved ? 'border-emerald-500 shadow-emerald-100/50' : 
                     isRejected ? 'border-red-300 bg-red-50/30' : 
                     'border-slate-200 hover:border-blue-300'
                   }`}
                 >
+                  {readabilityScore !== null && (
+                     <div className="absolute top-3 right-3 bg-indigo-50 border border-indigo-100 text-indigo-700 px-2 py-1 rounded-md text-[10px] font-bold flex items-center shadow-sm">
+                       <BarChart size={12} className="mr-1" />
+                       Readability: {readabilityScore}/100 
+                       <span className="font-normal ml-1">
+                         ({readabilityScore >= 90 ? 'Lớp 5' : readabilityScore >= 80 ? 'Lớp 6' : readabilityScore >= 70 ? 'Lớp 7' : readabilityScore >= 60 ? 'Lớp 8-9' : readabilityScore >= 50 ? 'Lớp 10-12' : 'Đại học'})
+                       </span>
+                     </div>
+                  )}
                   <div className={`p-4 prose prose-slate max-w-none prose-p:text-sm prose-li:text-sm whitespace-pre-wrap ${
                     isRejected ? 'opacity-50' : ''
-                  }`}>
+                  }${readabilityScore !== null ? ' pt-8' : ''}`}>
                     <ReactMarkdown>{block.content}</ReactMarkdown>
                   </div>
                   
