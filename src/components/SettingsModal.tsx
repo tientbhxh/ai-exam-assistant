@@ -40,6 +40,7 @@ export default function SettingsModal({
   const [modelInput, setModelInput] = useState(selectedModel);
   
   const [availableModelsGoogle, setAvailableModelsGoogle] = useState<any[]>([]);
+  const [availableModelsOpenRouter, setAvailableModelsOpenRouter] = useState<any[]>([]);
   const [isFetchingModels, setIsFetchingModels] = useState(false);
 
   useEffect(() => {
@@ -53,6 +54,9 @@ export default function SettingsModal({
   useEffect(() => {
     if (isOpen && activeTab === 'google' && keysInputGoogle.length > 0 && availableModelsGoogle.length === 0) {
       fetchModelsGoogle(keysInputGoogle[0]);
+    }
+    if (isOpen && activeTab === 'openrouter' && keysInputOpenRouter.length > 0 && availableModelsOpenRouter.length === 0) {
+      fetchModelsOpenRouter(keysInputOpenRouter[0]);
     }
   }, [isOpen, activeTab]);
 
@@ -86,6 +90,43 @@ export default function SettingsModal({
     }
   };
 
+  const fetchModelsOpenRouter = async (key: string) => {
+    if (!key.trim()) return;
+    setIsFetchingModels(true);
+    try {
+      const res = await fetch(`https://openrouter.ai/api/v1/models`, {
+        headers: { 'Authorization': `Bearer ${key}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const validModels = (data.data || []).map((model: any) => {
+          const isFree = model.pricing && (parseFloat(model.pricing.prompt || '0') === 0) && (parseFloat(model.pricing.completion || '0') === 0);
+          return {
+            id: model.id,
+            name: model.name + (isFree ? ' (Miễn phí)' : ''),
+            isFree: isFree
+          };
+        });
+        
+        validModels.sort((a: any, b: any) => {
+           if (a.isFree && !b.isFree) return -1;
+           if (!a.isFree && b.isFree) return 1;
+           return 0;
+        });
+
+        setAvailableModelsOpenRouter(validModels);
+        if (validModels.length > 0 && activeTab === 'openrouter') {
+           const exists = validModels.find((m: any) => m.id === modelInput);
+           if (!exists) setModelInput(validModels[0].id);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsFetchingModels(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   const handleSave = async () => {
@@ -95,7 +136,7 @@ export default function SettingsModal({
     
     // Đảm bảo model được chọn hợp lệ với provider tương ứng
     let finalModel = modelInput;
-    if (activeTab === 'openrouter') {
+    if (activeTab === 'openrouter' && availableModelsOpenRouter.length === 0) {
       const exists = OPENROUTER_MODELS.find(m => m.id === modelInput);
       if (!exists) finalModel = OPENROUTER_MODELS[0].id;
     }
@@ -153,8 +194,11 @@ export default function SettingsModal({
     setActiveTab(tab);
     // Khi chuyển tab, tự động chọn model mặc định đầu tiên nếu model hiện tại không thuộc provider mới
     if (tab === 'openrouter') {
-      const exists = OPENROUTER_MODELS.find(m => m.id === modelInput);
-      if (!exists) setModelInput(OPENROUTER_MODELS[0].id);
+      const existsInFetched = availableModelsOpenRouter.find(m => m.id === modelInput);
+      const existsInHardcoded = OPENROUTER_MODELS.find(m => m.id === modelInput);
+      if (!existsInFetched && !existsInHardcoded) {
+        setModelInput(availableModelsOpenRouter.length > 0 ? availableModelsOpenRouter[0].id : OPENROUTER_MODELS[0].id);
+      }
     } else {
       const exists = availableModelsGoogle.find(m => m.id === modelInput);
       if (!exists && availableModelsGoogle.length > 0) setModelInput(availableModelsGoogle[0].id);
@@ -237,6 +281,21 @@ export default function SettingsModal({
                 </button>
               </div>
             )}
+
+            {activeTab === 'openrouter' && (
+              <div className="mt-3 flex justify-between items-center">
+                <button 
+                  onClick={() => keysInputOpenRouter.length > 0 && fetchModelsOpenRouter(keysInputOpenRouter[0])} 
+                  disabled={isFetchingModels || keysInputOpenRouter.length === 0}
+                  className="text-xs font-medium text-purple-600 hover:text-purple-800 disabled:text-slate-400 disabled:cursor-not-allowed"
+                >
+                  {isFetchingModels ? 'Đang tải danh sách OpenRouter...' : 'Tải danh sách Model từ OpenRouter'}
+                </button>
+                {availableModelsOpenRouter.length > 0 && (
+                  <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded font-bold">Đã tải {availableModelsOpenRouter.length} models</span>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="mb-6">
@@ -255,9 +314,15 @@ export default function SettingsModal({
                   <option value={modelInput}>{modelInput} (Hãy Quét Model)</option>
                 )
               ) : (
-                OPENROUTER_MODELS.map(model => (
-                  <option key={model.id} value={model.id}>{model.name}</option>
-                ))
+                availableModelsOpenRouter.length > 0 ? (
+                  availableModelsOpenRouter.map(model => (
+                    <option key={model.id} value={model.id}>{model.name}</option>
+                  ))
+                ) : (
+                  OPENROUTER_MODELS.map(model => (
+                    <option key={model.id} value={model.id}>{model.name}</option>
+                  ))
+                )
               )}
             </select>
           </div>
