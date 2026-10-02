@@ -18,6 +18,7 @@ export async function generateChatResponse(
   modelName: string,
   messages: { role: string; content: string }[],
   learnedRules: Rule[],
+  examMatrix: string,
   sessionState: 'idle' | 'active' | 'review',
   onUpdate: (text: string) => void
 ) {
@@ -65,6 +66,10 @@ Nhiệm vụ của bạn:
    - GIỚI HẠN SỐ LƯỢNG: Khi tạo câu hỏi cho phần Reading/Listening, nếu có hơn 5 câu, hãy CHIA NHỎ ra (tạo 5 câu một đợt). Dùng nút <BUTTON>Tạo 5 câu tiếp theo</BUTTON>.
 4. Khi cô giáo yêu cầu sửa 1 khối (VD: "Sửa khối q1"), hãy tạo lại chỉ <BLOCK id="q1">...</BLOCK> với nội dung mới.
 5. Không tự tiện kết thúc phiên. Chỉ hỗ trợ tạo và sửa đề.`;
+
+    if (examMatrix) {
+      finalSystemInstruction += `\n\n=== MA TRẬN ĐẶC TẢ ĐỀ THI (EXAM MATRIX) ===\n${examMatrix}\n============================================\n`;
+    }
   }
   else if (sessionState === 'review') {
     finalSystemInstruction += `\nHIỆN TẠI ĐANG LÀ TRẠNG THÁI: KẾT THÚC VÀ HỌC HỎI (REVIEW).

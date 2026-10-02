@@ -4,11 +4,12 @@ import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import SettingsModal from '@/components/SettingsModal';
 import MemoryModal, { Rule } from '@/components/MemoryModal';
+import MatrixModal from '@/components/MatrixModal';
 import Login from '@/components/Login';
 import { supabase } from '@/lib/supabase';
 
 import { generateChatResponse } from '@/lib/llm';
-import { Key, BrainCircuit, Save, Upload } from 'lucide-react';
+import { Key, BrainCircuit, Save, Upload, BookOpen } from 'lucide-react';
 import * as xlsx from 'xlsx';
 import { ExamBlock, TestFormRow } from '@/components/PreviewInterface';
 
@@ -34,6 +35,8 @@ export default function Home() {
   
   const [learnedRules, setLearnedRules] = useState<Rule[]>([]);
   const [showMemory, setShowMemory] = useState(false);
+  const [examMatrix, setExamMatrix] = useState<string>('');
+  const [showMatrix, setShowMatrix] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   
   const [sessionState, setSessionState] = useState<SessionState>('idle');
@@ -46,7 +49,12 @@ export default function Home() {
       if (error) throw error;
       if (data) {
         const rules = data as Rule[];
-        setLearnedRules(rules.filter(r => r.type !== 'api_key'));
+        setLearnedRules(rules.filter(r => r.type !== 'api_key' && r.type !== 'matrix' && r.type !== 'openrouter_api_key'));
+        
+        const matrixRule = rules.find(r => r.type === 'matrix');
+        if (matrixRule) {
+          setExamMatrix(matrixRule.rule);
+        }
         
         // Trích xuất các API Keys đã lưu trên Cloud
         const cloudGoogleKeys = rules.filter(r => r.type === 'api_key').map(r => r.rule);
@@ -139,6 +147,7 @@ export default function Home() {
         finalModelToUse,
         newMessages,
         learnedRules,
+        examMatrix,
         currentState,
         (textChunk) => {
           setMessages(prev => {
@@ -416,6 +425,14 @@ Hãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc b
         setLearnedRules={setLearnedRules}
         currentUser={userRole}
       />
+      
+      <MatrixModal
+        isOpen={showMatrix}
+        onClose={() => setShowMatrix(false)}
+        examMatrix={examMatrix}
+        setExamMatrix={setExamMatrix}
+        currentUser={userRole}
+      />
 
       <section className="w-1/3 min-w-[380px] max-w-[500px] border-r border-slate-200 bg-white flex flex-col shadow-sm z-10 print:hidden relative">
         <div className="p-4 border-b border-slate-100 bg-white flex flex-col gap-3">
@@ -475,6 +492,16 @@ Hãy xác nhận bạn đã hiểu cấu trúc này, tóm tắt các quy tắc b
                   <span className="absolute top-0 right-0 w-2 h-2 bg-emerald-500 rounded-full border border-white"></span>
                 )}
               </label>
+              <button 
+                onClick={() => setShowMatrix(true)}
+                className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-white rounded-md transition-colors relative shadow-sm"
+                title="Ma trận Đặc tả"
+              >
+                <BookOpen size={16} />
+                {examMatrix && (
+                  <span className="absolute top-0 right-0 w-2 h-2 bg-emerald-500 rounded-full border border-white"></span>
+                )}
+              </button>
               <button 
                 onClick={() => setShowMemory(true)}
                 className="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-white rounded-md transition-colors relative shadow-sm"
