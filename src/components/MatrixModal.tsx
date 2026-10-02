@@ -20,10 +20,52 @@ const DEFAULT_MATRIX = `# MA TRẬN ĐẶC TẢ CÁC MỨC ĐỘ ĐÁNH GIÁ Đ�
 > **Chỉ thị 3 (Nghệ thuật tạo Bẫy cho mức độ Vận dụng cao - VDC):** Đây là mức độ tư duy cao nhất. Phương án nhiễu (distractors) phải cực kỳ tinh vi: chứa đựng một "nửa sự thật" (đúng một vế, sai một vế), hoặc mang ý nghĩa khái quát quá rộng/quá hẹp so với bài. Học sinh bắt buộc phải hiểu được "hàm ý ẩn" (read between the lines) hoặc logic toàn bài mới có thể thoát bẫy.
 
 ## I. LISTENING (Nghe hiểu)
-- **Nhận biết (NB):** Nghe hiểu các thông tin chi tiết, đơn giản.
-- **Thông hiểu (TH):** Hiểu nội dung chính của đoạn hội thoại để tìm câu trả lời đúng.
-- **Vận dụng (VD):** Tổng hợp thông tin từ nhiều chi tiết, phân tích và loại trừ các phương án nhiễu.
-- **Vận dụng cao (VDC):** Sử dụng thông tin nghe được để ứng dụng vào bài Nói/Viết.`;
+- **Nhận biết (NB):** Nghe hiểu các thông tin chi tiết, đơn giản (Thời gian, số lượng người nói, địa chỉ, số điện thoại, số tiền, phương hướng).
+- **Thông hiểu (TH):** Hiểu nội dung chính của đoạn hội thoại để tìm câu trả lời đúng. Hiểu được ý chính của người nói. Hiểu được các thông tin chi tiết cụ thể để chọn True/False.
+- **Vận dụng (VD):** Tổng hợp thông tin từ nhiều chi tiết, phân tích và loại trừ các phương án nhiễu (distractors) để tìm câu trả lời đúng. Nắm được ý chính để đưa ra suy luận phù hợp.
+- **Vận dụng cao (VDC):** Sử dụng các thông tin nghe được để ứng dụng vào bài Nói/Viết (Câu hỏi tích hợp kỹ năng).
+
+## II. PRONUNCIATION (Ngữ âm)
+- **Nhận biết (NB):** Nhận biết các nguyên âm, phụ âm đã học thông qua các từ vựng quen thuộc. Phân biệt cách phát âm đuôi \`-s/-es\` và \`-ed\` trong các từ đơn lẻ.
+- **Thông hiểu (TH):** Nhận diện trọng âm của các từ có hai hoặc ba âm tiết.
+- **Vận dụng & Vận dụng cao (VD/VDC):** Ứng dụng kiến thức ngữ âm vào bài thi Nói (Tích hợp kiểm tra kỹ năng Nói).
+
+## III. VOCABULARY (Từ vựng)
+- **Nhận biết (NB):** Nhận biết từ loại (danh, động, tính, trạng). Kết hợp được các cụm từ/thành ngữ đã học thuộc lòng trong sách giáo khoa.
+- **Thông hiểu (TH):** Hiểu nghĩa của từ/cụm từ quan trọng được sử dụng trong ngữ cảnh tương tự sách giáo khoa. Nắm vững Phrasal verbs và các cụm giới từ cố định (tính từ + giới từ, danh từ + giới từ). Nhận diện từ nối dùng để liên kết mệnh đề.
+- **Vận dụng (VD):** Xử lý các câu hỏi về Phrasal verbs phức tạp, từ đồng nghĩa/trái nghĩa.
+- **Vận dụng cao (VDC):** Xử lý các câu hỏi về Collocation/Idiom mở rộng (chưa được học trực tiếp trong sách giáo khoa).
+
+## IV. GRAMMAR (Ngữ pháp)
+- **Nhận biết (NB):** Nhận biết thì (Tense) thông qua dấu hiệu nhận biết. Nhận dạng động từ theo sau một số động từ đã học (V-ing, to-V). Sự hòa hợp chủ - vị. Nhận dạng câu điều kiện loại 2, 3 và câu bị động cơ bản.
+- **Thông hiểu (TH):** Hiểu cách sử dụng, phân biệt nghĩa của các điểm ngữ pháp (Should/shouldn't; Wh-questions). Viết lại câu/nối câu sử dụng các chủ điểm ngữ pháp đã học.
+- **Vận dụng (VD):** Vận dụng các điểm ngữ pháp đã học vào bài viết ở dạng câu/đoạn, hoặc tích hợp Nghe/Nói.
+- **Vận dụng cao (VDC):** Sử dụng linh hoạt các cấu trúc phức tạp để triển khai bài viết ở mức độ đoạn văn dài.
+
+## V. READING (Đọc hiểu)
+### 1. Close Test (Điền khuyết)
+- **Nhận biết (NB):** Điền dạng động từ theo sau động từ khác. Điền từ chỉ định (this/that/these/those) hoặc mạo từ (a/an/the). Điền lượng từ (many, a few, much, little). Điền đại từ quan hệ (who, whom, which, that, whose).
+- **Thông hiểu (TH):** Điền các cụm từ (collocations/phrasal verbs) quen thuộc đã học thuộc lòng trong SGK. Điền từ dựa vào nghĩa ngữ cảnh quen thuộc.
+- **Vận dụng (VD):** Điền liên từ để nối các câu. Câu hỏi từ vựng dựa vào ngữ cảnh suy luận (tương tự ngữ cảnh SGK).
+- **Vận dụng cao (VDC):** Điền từ vựng ở mức độ khó, khác với lớp nghĩa thông thường trong SGK, đòi hỏi phải kết hợp chặt chẽ với ngữ cảnh toàn bài. 
+
+### 2. Comprehension (Đọc hiểu trả lời câu hỏi)
+- **Nhận biết (NB):** Tìm thông tin đơn giản, hiển hiện rõ ràng trên mặt chữ (năm, tên, tuổi, sở thích...).
+- **Thông hiểu (TH):** Hiểu nghĩa đại từ tham chiếu (Reference words: it, they, them...). Tìm thông tin chi tiết. Tìm từ đồng nghĩa ở mức độ dễ đã học trong SGK.
+- **Vận dụng (VD):** Tìm Ý chính (Main idea) của đoạn văn. Trả lời các câu hỏi dạng Except / True / False / Not Given. Tìm từ đồng nghĩa ở mức độ khó (chưa gặp bao giờ, phải đoán qua ngữ cảnh).
+- **Vận dụng cao (VDC):** Câu hỏi suy luận (Inference). Tìm mục đích của tác giả (Author's purpose). Tìm quy luật sắp xếp các ý, nguồn gốc văn bản, hoặc giọng điệu (Tone) của văn bản.
+
+## VI. WRITING (Viết)
+- **Nhận biết (NB):** Nhận diện lỗi sai (Error identification) về sự hòa hợp, đại từ phản thân, loại từ, thì của động từ, câu điều kiện.
+- **Thông hiểu (TH):** Viết lại câu (Sentence transformation) chuyển đổi câu đơn giản với V-ing/to-V, chuyển đổi thì, bị động, gián tiếp.
+- **Vận dụng (VD):** Viết lại câu phức tạp (chuyển đổi giữa gerund và infinitive, câu điều kiện 2/3, sử dụng từ nối bắt buộc phải hiểu nghĩa câu).
+- **Vận dụng cao (VDC):** Vận dụng cấu trúc để viết đoạn văn hoặc thư tín hoàn chỉnh.
+
+## VII. SPEAKING (Nói)
+- **Nhận biết (NB):** Giới thiệu bản thân (Sở thích, môi trường, môn học...).
+- **Thông hiểu (TH):** Trình bày theo chủ đề (Theme-speaking) sử dụng ngôn ngữ đã học.
+- **Vận dụng (VD):** Sử dụng từ vựng linh hoạt, diễn đạt ý bằng nhiều cách khác nhau. Phát âm tương đối chuẩn.
+- **Vận dụng cao (VDC):** Phản xạ Q&A (Hỏi - Đáp). Hiểu, đặt câu hỏi và trả lời một cách linh hoạt, tự nhiên, thuần thục.`;
 
 export default function MatrixModal({ isOpen, onClose, examMatrix, setExamMatrix, currentUser }: MatrixModalProps) {
   const [value, setValue] = useState(examMatrix || DEFAULT_MATRIX);
